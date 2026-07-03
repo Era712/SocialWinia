@@ -10,7 +10,7 @@ import { processRawPosts, runGiveawayPipeline } from './pipeline/giveaway-pipeli
 config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT || 3001);
 
 app.post('/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -331,8 +331,8 @@ app.post('/billing/portal-session', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
   
   // Start cron job
   startScraperCron();
