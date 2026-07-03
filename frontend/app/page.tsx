@@ -271,16 +271,17 @@ export default function Home() {
           return;
         }
 
-        let items = payload.giveaways?.length
-          ? payload.giveaways.map(mapBackendGiveaway)
+        const hasLiveGiveaways = Boolean(payload.giveaways?.length);
+        let items = hasLiveGiveaways
+          ? payload.giveaways!.map(mapBackendGiveaway).filter(isSpecificGiveaway)
           : demoGiveaways;
 
-        if (payload.giveaways?.length) {
+        if (hasLiveGiveaways) {
           items = await applyVisitedState(items, user);
         }
 
         setGiveawayItems(items);
-        setDataSource(payload.giveaways?.length ? "live" : "demo");
+        setDataSource(hasLiveGiveaways ? "live" : "demo");
       } catch (error) {
         console.warn("Using demo giveaways because live data is unavailable.", error);
         setGiveawayItems(demoGiveaways);
@@ -623,6 +624,61 @@ function mapBackendGiveaway(giveaway: BackendGiveaway): Giveaway {
     url: giveaway.url || "#",
     visited: Boolean(giveaway.visited),
   };
+}
+
+function isSpecificGiveaway(giveaway: Giveaway) {
+  try {
+    const parsedUrl = new URL(giveaway.url);
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const pathname = parsedUrl.pathname.toLowerCase();
+    const platform = giveaway.platform.toLowerCase();
+
+    if (hostname === "example.com" || hostname.endsWith(".example.com")) {
+      return false;
+    }
+
+    switch (platform) {
+      case "instagram":
+        return pathname.startsWith("/p/") || pathname.startsWith("/reel/") || pathname.startsWith("/tv/");
+      case "tiktok":
+        return pathname.includes("/video/");
+      case "x":
+      case "twitter":
+        return pathname.includes("/status/");
+      case "youtube":
+        return (
+          hostname === "youtu.be" ||
+          (hostname.includes("youtube.com") && (pathname === "/watch" || pathname.startsWith("/shorts/")))
+        );
+      case "facebook":
+        return (
+          !pathname.includes("/hashtag/") &&
+          (pathname.includes("/posts/") ||
+            pathname.includes("/permalink/") ||
+            pathname.includes("/videos/") ||
+            pathname.includes("/reel/") ||
+            parsedUrl.searchParams.has("story_fbid"))
+        );
+      case "threads":
+        return pathname.includes("/post/");
+      case "reddit":
+        return pathname.includes("/comments/");
+      case "linkedin":
+        return pathname.includes("/feed/update/");
+      case "telegram": {
+        const parts = pathname.split("/").filter(Boolean);
+        return parts.length >= 2 && /^\d+$/.test(parts[parts.length - 1]);
+      }
+      case "discord":
+      case "kick":
+      case "twitch":
+        return true;
+      default:
+        return parsedUrl.protocol === "https:" || parsedUrl.protocol === "http:";
+    }
+  } catch {
+    return false;
+  }
 }
 
 async function ensureUserProfile(user: SupabaseUser): Promise<UserProfile> {
