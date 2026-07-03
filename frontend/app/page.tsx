@@ -167,6 +167,7 @@ const TEST_LOGIN_ENABLED = process.env.NEXT_PUBLIC_ENABLE_TEST_LOGIN === "true";
 const TEST_LOGIN_STORAGE_KEY = "socialwinia-test-login";
 const TEST_USER_ID = "00000000-0000-4000-8000-000000000001";
 const TEST_USER_EMAIL = "test@socialwinia.com";
+const SHOW_DEMO_GIVEAWAYS = process.env.NODE_ENV !== "production";
 
 type BackendHealth = {
   services: Record<"openai" | "scrapingbee" | "stripe" | "supabase", boolean>;
@@ -212,8 +213,12 @@ export default function Home() {
     status: "all",
   });
   const [draftFilters, setDraftFilters] = useState<FilterState>(appliedFilters);
-  const [giveawayItems, setGiveawayItems] = useState<Giveaway[]>(demoGiveaways);
-  const [dataSource, setDataSource] = useState<"demo" | "live">("demo");
+  const [giveawayItems, setGiveawayItems] = useState<Giveaway[]>(
+    SHOW_DEMO_GIVEAWAYS ? demoGiveaways : []
+  );
+  const [dataSource, setDataSource] = useState<"demo" | "live">(
+    SHOW_DEMO_GIVEAWAYS ? "demo" : "live"
+  );
 
   useEffect(() => {
     if (TEST_LOGIN_ENABLED && window.localStorage.getItem(TEST_LOGIN_STORAGE_KEY) === "true") {
@@ -239,7 +244,8 @@ export default function Home() {
   useEffect(() => {
     if (!user) {
       setProfile(null);
-      setGiveawayItems(demoGiveaways);
+      setGiveawayItems(SHOW_DEMO_GIVEAWAYS ? demoGiveaways : []);
+      setDataSource(SHOW_DEMO_GIVEAWAYS ? "demo" : "live");
       return;
     }
 
@@ -271,21 +277,25 @@ export default function Home() {
           return;
         }
 
-        const hasLiveGiveaways = Boolean(payload.giveaways?.length);
-        let items = hasLiveGiveaways
-          ? payload.giveaways!.map(mapBackendGiveaway).filter(isSpecificGiveaway)
-          : demoGiveaways;
+        const backendGiveaways = payload.giveaways ?? [];
+        let items = backendGiveaways.map(mapBackendGiveaway).filter(isSpecificGiveaway);
 
-        if (hasLiveGiveaways) {
+        if (items.length) {
           items = await applyVisitedState(items, user);
         }
 
+        if (!items.length && SHOW_DEMO_GIVEAWAYS) {
+          setGiveawayItems(demoGiveaways);
+          setDataSource("demo");
+          return;
+        }
+
         setGiveawayItems(items);
-        setDataSource(hasLiveGiveaways ? "live" : "demo");
+        setDataSource("live");
       } catch (error) {
-        console.warn("Using demo giveaways because live data is unavailable.", error);
-        setGiveawayItems(demoGiveaways);
-        setDataSource("demo");
+        console.warn("Could not load live giveaways.", error);
+        setGiveawayItems(SHOW_DEMO_GIVEAWAYS ? demoGiveaways : []);
+        setDataSource(SHOW_DEMO_GIVEAWAYS ? "demo" : "live");
       }
     }
 
@@ -964,6 +974,17 @@ function FeedView({
         )}
 
         <div className="space-y-3">
+          {giveaways.length === 0 && (
+            <div className="rounded-md border border-[#d7dde5] bg-white p-5 text-sm text-[#627083]">
+              <h3 className="text-lg font-bold text-[#111820]">No exact giveaway links yet</h3>
+              <p className="mt-2">
+                SocialWinia only shows direct giveaway posts here. Overview pages, hashtag pages, and platform search
+                pages are hidden so the Enter button always points to a real giveaway.
+              </p>
+              <p className="mt-2">Run a fresh scrape from Profile to search for new direct giveaway links.</p>
+            </div>
+          )}
+
           {giveaways.map((giveaway) => (
             <article
               key={giveaway.id}
