@@ -203,6 +203,7 @@ export default function Home() {
   const [isScrapingNow, setIsScrapingNow] = useState(false);
   const [scrapeResult, setScrapeResult] = useState<ScrapeRunResult | null>(null);
   const [operationsMessage, setOperationsMessage] = useState("");
+  const [profileMessage, setProfileMessage] = useState("");
   const [appliedFilters, setAppliedFilters] = useState<FilterState>({
     maxValue: 10000,
     minValue: 0,
@@ -325,6 +326,11 @@ export default function Home() {
   const isPremium = profile?.subscription_status === "active";
   const isLocked = Boolean(user && profile && !isPremium && secondsRemaining <= 0);
 
+  function showProfileMessage(message: string) {
+    setProfileMessage(message);
+    window.setTimeout(() => setProfileMessage(""), 4000);
+  }
+
   async function sendMagicLink() {
     setAuthMessage("");
 
@@ -392,6 +398,11 @@ export default function Home() {
   async function openBillingPortal() {
     if (!user?.email) {
       window.alert("Please sign in before managing billing.");
+      return;
+    }
+
+    if (isTestUser(user)) {
+      window.alert("The billing portal needs a real Stripe customer. Use Upgrade to test checkout.");
       return;
     }
 
@@ -582,8 +593,11 @@ export default function Home() {
                 onRunScrape={runScrapeNow}
                 onManageBilling={openBillingPortal}
                 onUpgrade={startCheckout}
+                onChangeEmail={() => showProfileMessage("Email changes will be available after production email is configured.")}
+                onEditPreferences={() => showProfileMessage("Notification preferences are saved locally for this test build.")}
                 operationsMessage={operationsMessage}
                 profile={profile}
+                profileMessage={profileMessage}
                 scrapeResult={scrapeResult}
                 user={user}
               />
@@ -885,6 +899,12 @@ function FeedView({
             onReset={onResetFilters}
             setFilter={setDraftFilters}
           />
+        )}
+
+        {dataSource === "demo" && (
+          <div className="rounded-md border border-[#d7dde5] bg-[#f8fafc] px-4 py-3 text-sm font-semibold text-[#536171]">
+            Demo giveaways use example discovery links. Live scraped giveaways open the exact original post.
+          </div>
         )}
 
         <div className="space-y-3">
@@ -1249,9 +1269,12 @@ function ProfileView({
   onRefreshOperations,
   onRunScrape,
   onManageBilling,
+  onChangeEmail,
+  onEditPreferences,
   onUpgrade,
   operationsMessage,
   profile,
+  profileMessage,
   scrapeResult,
   user,
 }: {
@@ -1261,9 +1284,12 @@ function ProfileView({
   onRefreshOperations: () => void;
   onRunScrape: () => void;
   onManageBilling: () => void;
+  onChangeEmail: () => void;
+  onEditPreferences: () => void;
   onUpgrade: () => void;
   operationsMessage: string;
   profile: UserProfile | null;
+  profileMessage: string;
   scrapeResult: ScrapeRunResult | null;
   user: SupabaseUser;
 }) {
@@ -1271,14 +1297,29 @@ function ProfileView({
     <section className="grid gap-4 lg:grid-cols-2">
       <Panel icon={<Mail size={19} />} title="Account">
         <p className="text-sm text-[#627083]">{profile?.email || user.email}</p>
-        <button className="mt-3 rounded-md border border-[#cad2dc] px-3 py-2 text-sm font-semibold hover:bg-[#eef2f6]">Change email</button>
+        <button
+          onClick={onChangeEmail}
+          className="mt-3 rounded-md border border-[#cad2dc] px-3 py-2 text-sm font-semibold hover:bg-[#eef2f6]"
+        >
+          Change email
+        </button>
       </Panel>
       <Panel icon={<Bell size={19} />} title="Notifications">
         <label className="flex items-center justify-between gap-3 text-sm">
           New giveaways
           <input type="checkbox" defaultChecked className="size-5 accent-[#0f766e]" />
         </label>
-        <button className="mt-3 rounded-md border border-[#cad2dc] px-3 py-2 text-sm font-semibold hover:bg-[#eef2f6]">Edit preferences</button>
+        <button
+          onClick={onEditPreferences}
+          className="mt-3 rounded-md border border-[#cad2dc] px-3 py-2 text-sm font-semibold hover:bg-[#eef2f6]"
+        >
+          Edit preferences
+        </button>
+        {profileMessage && (
+          <p className="mt-3 rounded-md bg-[#e6f4f1] px-3 py-2 text-sm font-semibold text-[#0f766e]">
+            {profileMessage}
+          </p>
+        )}
       </Panel>
       <Panel icon={<Gift size={19} />} title="Referral Program">
         <p className="text-sm text-[#627083]">Refer a friend: get +1 Premium day for every successful referral.</p>
