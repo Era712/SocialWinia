@@ -163,6 +163,11 @@ type UserProfile = {
   trial_ends_at: string;
 };
 
+const TEST_LOGIN_ENABLED = process.env.NEXT_PUBLIC_ENABLE_TEST_LOGIN === "true";
+const TEST_LOGIN_STORAGE_KEY = "socialwinia-test-login";
+const TEST_USER_ID = "00000000-0000-4000-8000-000000000001";
+const TEST_USER_EMAIL = "test@socialwinia.com";
+
 type BackendHealth = {
   services: Record<"openai" | "scrapingbee" | "stripe" | "supabase", boolean>;
   status: string;
@@ -210,6 +215,12 @@ export default function Home() {
   const [dataSource, setDataSource] = useState<"demo" | "live">("demo");
 
   useEffect(() => {
+    if (TEST_LOGIN_ENABLED && window.localStorage.getItem(TEST_LOGIN_STORAGE_KEY) === "true") {
+      setUser(createTestUser());
+      setAuthLoading(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null);
       setAuthLoading(false);
@@ -228,6 +239,11 @@ export default function Home() {
     if (!user) {
       setProfile(null);
       setGiveawayItems(demoGiveaways);
+      return;
+    }
+
+    if (isTestUser(user)) {
+      setProfile(createTestProfile());
       return;
     }
 
@@ -322,7 +338,14 @@ export default function Home() {
     setAuthMessage(error ? error.message : "Magic link sent. Check your email to sign in.");
   }
 
+  function signInAsTestUser() {
+    window.localStorage.setItem(TEST_LOGIN_STORAGE_KEY, "true");
+    setUser(createTestUser());
+    setAuthMessage("");
+  }
+
   async function signOut() {
+    window.localStorage.removeItem(TEST_LOGIN_STORAGE_KEY);
     await supabase.auth.signOut();
     setProfile(null);
     setUser(null);
@@ -479,6 +502,7 @@ export default function Home() {
         email={email}
         onEmailChange={setEmail}
         onSubmit={sendMagicLink}
+        onTestLogin={TEST_LOGIN_ENABLED ? signInAsTestUser : undefined}
       />
     );
   }
@@ -620,6 +644,30 @@ async function ensureUserProfile(user: SupabaseUser): Promise<UserProfile> {
   return insertedProfile as UserProfile;
 }
 
+function createTestProfile(): UserProfile {
+  return {
+    email: TEST_USER_EMAIL,
+    subscription_status: "trial",
+    trial_ends_at: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
+  };
+}
+
+function createTestUser(): SupabaseUser {
+  return {
+    app_metadata: { provider: "test", providers: ["test"] },
+    aud: "authenticated",
+    created_at: new Date().toISOString(),
+    email: TEST_USER_EMAIL,
+    id: TEST_USER_ID,
+    role: "authenticated",
+    user_metadata: {},
+  } as SupabaseUser;
+}
+
+function isTestUser(user: SupabaseUser | null) {
+  return user?.id === TEST_USER_ID;
+}
+
 async function applyVisitedState(items: Giveaway[], user: SupabaseUser | null) {
   if (!user) {
     return items;
@@ -719,11 +767,13 @@ function AuthView({
   email,
   onEmailChange,
   onSubmit,
+  onTestLogin,
 }: {
   authMessage: string;
   email: string;
   onEmailChange: (value: string) => void;
   onSubmit: () => void;
+  onTestLogin?: () => void;
 }) {
   return (
     <main className="grid min-h-screen place-items-center bg-[#f6f7f9] px-4 text-[#17202a]">
@@ -764,6 +814,15 @@ function AuthView({
           <Mail size={18} />
           Send magic link
         </button>
+
+        {onTestLogin && (
+          <button
+            onClick={onTestLogin}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-[#cad2dc] bg-white px-4 py-3 font-semibold text-[#17202a] hover:bg-[#eef2f6]"
+          >
+            Continue as test user
+          </button>
+        )}
 
         {authMessage && (
           <p className="mt-3 rounded-md bg-[#e6f4f1] px-3 py-2 text-sm font-semibold text-[#0f766e]">
