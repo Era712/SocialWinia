@@ -242,14 +242,27 @@ app.post('/scrape/run', async (_req, res) => {
     return;
   }
 
-  const result = await runGiveawayPipeline();
+  try {
+    const result = await runGiveawayPipeline();
 
-  if (result.errors.some((error) => error.startsWith('Missing configuration'))) {
-    res.status(400).json(result);
-    return;
+    if (result.errors.some((error) => error.startsWith('Missing configuration'))) {
+      res.status(400).json(result);
+      return;
+    }
+
+    res.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown scraping error';
+    console.error('Manual scrape failed:', error);
+    res.status(500).json({
+      fallbackCount: 0,
+      rawCount: 0,
+      processedCount: 0,
+      savedCount: 0,
+      skippedCount: 0,
+      errors: [message],
+    });
   }
-
-  res.json(result);
 });
 
 app.post('/scrape/sample', async (_req, res) => {

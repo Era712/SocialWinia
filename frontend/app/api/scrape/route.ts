@@ -14,7 +14,22 @@ export async function POST() {
       headers,
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    const data = text ? tryParseJson(text) : null;
+
+    if (!response.ok) {
+      return NextResponse.json(
+        {
+          error:
+            data?.error ||
+            data?.errors?.join(', ') ||
+            `Backend returned ${response.status}: ${text.slice(0, 180)}`,
+          data,
+          success: false,
+        },
+        { status: response.status }
+      );
+    }
 
     return NextResponse.json({ success: response.ok, data }, { status: response.status });
   } catch (error) {
@@ -23,5 +38,13 @@ export async function POST() {
       { error: 'Scraping error' },
       { status: 500 }
     );
+  }
+}
+
+function tryParseJson(text: string) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
   }
 }
