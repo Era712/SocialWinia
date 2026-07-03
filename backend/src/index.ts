@@ -266,6 +266,11 @@ app.post('/scrape/run', async (_req, res) => {
 });
 
 app.post('/scrape/sample', async (_req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.status(404).json({ error: 'Sample scrape is disabled in production' });
+    return;
+  }
+
   const result = await processRawPosts([
     {
       platform: 'reddit',
