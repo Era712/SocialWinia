@@ -1476,13 +1476,25 @@ function ProfileView({
           </p>
         )}
         {scrapeResult && (
-          <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-            <Metric label="Raw posts" value={scrapeResult.rawCount} />
-            <Metric label="Saved" value={scrapeResult.savedCount} />
-            <Metric label="Processed" value={scrapeResult.processedCount} />
-            <Metric label="Skipped" value={scrapeResult.skippedCount} />
-            <Metric label="AI fallback" value={scrapeResult.fallbackCount} />
-          </div>
+          <>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <Metric label="Raw posts" value={scrapeResult.rawCount} />
+              <Metric label="Saved" value={scrapeResult.savedCount} />
+              <Metric label="Processed" value={scrapeResult.processedCount} />
+              <Metric label="Skipped" value={scrapeResult.skippedCount} />
+              <Metric label="AI fallback" value={scrapeResult.fallbackCount} />
+            </div>
+            {scrapeResult.errors.length > 0 && (
+              <div className="mt-3 rounded-md border border-[#f3d2a7] bg-[#fff8ed] p-3 text-xs text-[#8a4b10]">
+                <p className="font-bold">Latest scrape notes</p>
+                <ul className="mt-2 space-y-1">
+                  {scrapeResult.errors.slice(0, 4).map((error) => (
+                    <li key={error}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
         )}
       </Panel>
     </section>

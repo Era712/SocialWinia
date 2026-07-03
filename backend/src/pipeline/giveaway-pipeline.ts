@@ -65,6 +65,7 @@ export async function processRawPosts(rawPosts: RawPost[]): Promise<PipelineResu
 
       if (!category?.primary_category) {
         result.skippedCount++;
+        result.errors.push(`No category detected: ${rawPost.url}`);
         continue;
       }
 
@@ -74,6 +75,7 @@ export async function processRawPosts(rawPosts: RawPost[]): Promise<PipelineResu
 
       if (!isValid) {
         result.skippedCount++;
+        result.errors.push(`Rejected by validation: ${rawPost.url}`);
         continue;
       }
 
@@ -130,7 +132,7 @@ async function safeCategorizeGiveaway(rawPost: RawPost, markFallback: () => void
   try {
     return await categorizeGiveaway(rawPost);
   } catch (error) {
-    if (!isOpenAIQuotaError(error)) {
+    if (!shouldUseHeuristicFallback(error)) {
       throw error;
     }
 
@@ -147,7 +149,7 @@ async function safeExtractGiveawayData(rawPost: RawPost, markFallback: () => voi
   try {
     return await extractGiveawayData(rawPost);
   } catch (error) {
-    if (!isOpenAIQuotaError(error)) {
+    if (!shouldUseHeuristicFallback(error)) {
       throw error;
     }
 
@@ -166,7 +168,7 @@ async function safeValidateGiveaway(rawPost: RawPost, markFallback: () => void):
   try {
     return await validateGiveaway(rawPost);
   } catch (error) {
-    if (!isOpenAIQuotaError(error)) {
+    if (!shouldUseHeuristicFallback(error)) {
       throw error;
     }
 
@@ -182,9 +184,23 @@ async function safeValidateGiveaway(rawPost: RawPost, markFallback: () => void):
   }
 }
 
-function isOpenAIQuotaError(error: unknown) {
+function shouldUseHeuristicFallback(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
-  return message.includes('429') || message.toLowerCase().includes('quota');
+  const normalized = message.toLowerCase();
+
+  return (
+    message.includes('429') ||
+    normalized.includes('quota') ||
+    normalized.includes('rate limit') ||
+    normalized.includes('timeout') ||
+    normalized.includes('network') ||
+    normalized.includes('fetch') ||
+    normalized.includes('json') ||
+    normalized.includes('parse') ||
+    normalized.includes('invalid response') ||
+    normalized.includes('api key') ||
+    normalized.includes('authentication')
+  );
 }
 
 function isSpecificGiveawayUrl(url: string, platform: string) {
