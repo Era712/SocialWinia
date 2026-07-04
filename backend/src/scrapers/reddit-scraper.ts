@@ -16,6 +16,13 @@ type RedditListingChild = {
   };
 };
 
+type RedditSource = {
+  apiUrl?: string;
+  label: string;
+  rssUrl?: string;
+  url: string;
+};
+
 const giveawaySubreddits = new Set([
   'giveaways',
   'sweepstakes',
@@ -27,7 +34,7 @@ const giveawaySubreddits = new Set([
   'free',
 ]);
 
-const redditSources = [
+const redditSources: RedditSource[] = [
   ...[
     'giveaways',
     'sweepstakes',
@@ -38,22 +45,30 @@ const redditSources = [
     'freebies',
     'FREE',
   ].map((subreddit) => ({
+    apiUrl: `https://api.reddit.com/r/${subreddit}/new?limit=100&raw_json=1`,
     label: `r/${subreddit}`,
+    rssUrl: `https://www.reddit.com/r/${subreddit}/new/.rss?limit=100`,
     url: `https://www.reddit.com/r/${subreddit}/new.json?limit=100&raw_json=1`,
   })),
   {
+    apiUrl: 'https://api.reddit.com/r/giveaways/hot?limit=100&raw_json=1',
     label: 'r/giveaways hot',
+    rssUrl: 'https://www.reddit.com/r/giveaways/hot/.rss?limit=100',
     url: 'https://www.reddit.com/r/giveaways/hot.json?limit=100&raw_json=1',
   },
   {
+    apiUrl: 'https://api.reddit.com/r/sweepstakes/hot?limit=100&raw_json=1',
     label: 'r/sweepstakes hot',
+    rssUrl: 'https://www.reddit.com/r/sweepstakes/hot/.rss?limit=100',
     url: 'https://www.reddit.com/r/sweepstakes/hot.json?limit=100&raw_json=1',
   },
   {
+    apiUrl: 'https://api.reddit.com/search?q=giveaway%20OR%20sweepstakes%20OR%20%22enter%20to%20win%22&sort=new&t=month&limit=100&raw_json=1',
     label: 'reddit search giveaways',
     url: 'https://www.reddit.com/search.json?q=giveaway%20OR%20sweepstakes%20OR%20%22enter%20to%20win%22&sort=new&t=month&limit=100&raw_json=1',
   },
   {
+    apiUrl: 'https://api.reddit.com/search?q=contest%20OR%20raffle%20OR%20prize&sort=new&t=month&limit=100&raw_json=1',
     label: 'reddit search contests',
     url: 'https://www.reddit.com/search.json?q=contest%20OR%20raffle%20OR%20prize&sort=new&t=month&limit=100&raw_json=1',
   },
@@ -67,8 +82,7 @@ export async function scrapeReddit(): Promise<RawPost[]> {
 
   for (const source of redditSources) {
     try {
-      const data = await fetchRedditJson(source.url);
-      const children = Array.isArray(data?.data?.children) ? data.data.children : [];
+      const { children, method } = await fetchRedditChildren(source);
       let matchedPosts = 0;
 
       for (const item of children as RedditListingChild[]) {
@@ -104,7 +118,7 @@ export async function scrapeReddit(): Promise<RawPost[]> {
       }
 
       console.log(`✅ Scraped ${source.label}: ${matchedPosts} giveaway candidates`);
-      sourceSummaries.push(`${source.label}: ${children.length} read, ${matchedPosts} matched`);
+      sourceSummaries.push(`${source.label}: ${children.length} read via ${method}, ${matchedPosts} matched`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error(`❌ Error scraping ${source.label}:`, error);
@@ -181,21 +195,131 @@ function isGiveawayCandidate(post: {
   return Boolean(subreddit && giveawaySubreddits.has(subreddit) && text.length > 8);
 }
 
-async function fetchRedditJson(url: string) {
+async function fetchRedditChildren(source: RedditSource) {
+  const errors: string[] = [];
+  const jsonUrls = [source.url, source.apiUrl].filter(Boolean) as string[];
+
+  for (const url of jsonUrls) {
+    try {
+      const data = await fetchRedditJsonDirect(url);
+      const children = Array.isArray(data?.data?.children) ? data.data.children : [];
+      return { children, method: url.includes('api.reddit.com') ? 'api.reddit.com' : 'reddit json' };
+    } catch (error) {
+      errors.push(formatFetchError(url, error));
+    }
+  }
+
+  for (const url of jsonUrls) {
+    try {
+      const data = await scrapingBeeClient.fetchJson(url);
+      const children = Array.isArray(data?.data?.children) ? data.data.children : [];
+      return { children, method: 'ScrapingBee' };
+    } catch (error) {
+      errors.push(formatFetchError(`ScrapingBee ${url}`, error));
+    }
+  }
+
+  if (source.rssUrl) {
+    try {
+      const rss = await fetchRedditTextDirect(source.rssUrl, 'application/atom+xml, application/xml, text/xml');
+      return { children: parseRedditRss(rss, source.label), method: 'reddit rss' };
+    } catch (error) {
+      errors.push(formatFetchError(source.rssUrl, error));
+    }
+
+    try {
+      const rss = await scrapingBeeClient.fetch(source.rssUrl, { renderJs: false });
+      return { children: parseRedditRss(rss, source.label), method: 'ScrapingBee rss' };
+    } catch (error) {
+      errors.push(formatFetchError(`ScrapingBee ${source.rssUrl}`, error));
+    }
+  }
+
+  throw new Error(errors.slice(0, 4).join('; '));
+}
+
+async function fetchRedditJsonDirect(url: string) {
+  const text = await fetchRedditTextDirect(url, 'application/json');
+  return JSON.parse(text);
+}
+
+async function fetchRedditTextDirect(url: string, accept: string) {
   try {
     const directResponse = await fetch(url, {
       headers: {
-        Accept: 'application/json',
+        Accept: accept,
         'User-Agent': 'SocialWinia/1.0 by socialwinia',
       },
     });
 
-    if (directResponse.ok && directResponse.headers.get('content-type')?.includes('application/json')) {
-      return directResponse.json();
+    if (!directResponse.ok) {
+      throw new Error(`direct ${directResponse.status}`);
     }
-  } catch (error) {
-    console.warn(`Direct Reddit fetch failed, falling back to ScrapingBee: ${url}`, error);
-  }
 
-  return scrapingBeeClient.fetchJson(url);
+    return directResponse.text();
+  } catch (error) {
+    console.warn(`Direct Reddit fetch failed: ${url}`, error);
+    throw error;
+  }
+}
+
+function parseRedditRss(rss: string, sourceLabel: string): RedditListingChild[] {
+  const subreddit = sourceLabel.match(/^r\/([^ ]+)/)?.[1] || 'reddit';
+  const entries = rss.match(/<entry[\s\S]*?<\/entry>/g) || [];
+
+  return entries.map((entry) => {
+    const title = decodeXml(readXmlTag(entry, 'title'));
+    const author = decodeXml(readXmlTag(entry, 'name')) || 'reddit_user';
+    const updated = readXmlTag(entry, 'updated') || readXmlTag(entry, 'published');
+    const href = entry.match(/<link[^>]+href="([^"]+)"/)?.[1] || readXmlTag(entry, 'id');
+    const url = decodeXml(href);
+    const permalink = toRedditPermalink(url);
+    const created = updated ? Math.floor(new Date(updated).getTime() / 1000) : Math.floor(Date.now() / 1000);
+
+    return {
+      data: {
+        author,
+        created_utc: Number.isFinite(created) ? created : Math.floor(Date.now() / 1000),
+        permalink,
+        selftext: decodeXml(stripTags(readXmlTag(entry, 'content'))),
+        stickied: false,
+        subreddit,
+        title,
+        url,
+        url_overridden_by_dest: url,
+      },
+    };
+  });
+}
+
+function readXmlTag(xml: string, tag: string) {
+  return xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'))?.[1]?.trim() || '';
+}
+
+function stripTags(value: string) {
+  return value.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function decodeXml(value: string) {
+  return value
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+function toRedditPermalink(url: string) {
+  try {
+    const parsed = new URL(url);
+    return parsed.pathname;
+  } catch {
+    return url;
+  }
+}
+
+function formatFetchError(url: string, error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return `${url}: ${message}`;
 }
