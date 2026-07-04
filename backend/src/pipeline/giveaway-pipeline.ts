@@ -5,7 +5,7 @@ import { isOpenAIConfigured } from '../config/openai';
 import { isScrapingBeeConfigured } from '../config/scrapingbee';
 import { isSupabaseConfigured, supabase } from '../config/supabase';
 import { sendOneSignalNotification } from '../config/onesignal';
-import { scrapeAllPlatforms } from '../scrapers';
+import { getLastScraperDiagnostics, scrapeAllPlatforms } from '../scrapers';
 import { CategorizationResult, ExtractionResult, PipelineResult, RawPost, ValidationResult } from '../types';
 
 export async function runGiveawayPipeline(): Promise<PipelineResult> {
@@ -28,6 +28,12 @@ export async function runGiveawayPipeline(): Promise<PipelineResult> {
 
   const rawPosts = await scrapeAllPlatforms();
   const result = await processRawPosts(rawPosts);
+  const scraperDiagnostics = getLastScraperDiagnostics();
+
+  if (result.rawCount === 0) {
+    result.errors.push('No raw posts were returned by the active scrapers.');
+    result.errors.push(...scraperDiagnostics.messages.slice(0, 6));
+  }
 
   if (result.savedCount > 0) {
     await sendOneSignalNotification(

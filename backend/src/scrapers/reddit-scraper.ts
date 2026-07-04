@@ -31,6 +31,14 @@ const redditSources = [
     url: `https://www.reddit.com/r/${subreddit}/new.json?limit=100&raw_json=1`,
   })),
   {
+    label: 'r/giveaways hot',
+    url: 'https://www.reddit.com/r/giveaways/hot.json?limit=100&raw_json=1',
+  },
+  {
+    label: 'r/sweepstakes hot',
+    url: 'https://www.reddit.com/r/sweepstakes/hot.json?limit=100&raw_json=1',
+  },
+  {
     label: 'reddit search giveaways',
     url: 'https://www.reddit.com/search.json?q=giveaway%20OR%20sweepstakes%20OR%20%22enter%20to%20win%22&sort=new&t=month&limit=100&raw_json=1',
   },
