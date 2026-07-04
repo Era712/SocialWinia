@@ -76,6 +76,13 @@ export async function processRawPosts(rawPosts: RawPost[]): Promise<PipelineResu
       }
 
       const details = await safeExtractGiveawayData(rawPost, markFallback);
+
+      if (isEndedGiveaway(rawPost, details.end_date)) {
+        result.skippedCount++;
+        result.errors.push(`Skipped ended giveaway: ${rawPost.url}`);
+        continue;
+      }
+
       const validation = await safeValidateGiveaway(rawPost, markFallback);
       const isValid = validation.is_valid ?? validation.is_legitimate ?? validation.action !== 'reject';
 
@@ -303,35 +310,108 @@ function inferPrizeValue(rawPost: RawPost) {
 
 function inferEndDate(rawPost: RawPost) {
   const text = `${rawPost.description} ${rawPost.full_text ?? ''}`;
-  const match = text.match(/(?:ends?|until|by)\s+([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i);
+  const englishDate = text.match(/(?:ends?|until|by|deadline)\s+([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i);
 
-  if (!match?.[1]) {
-    return null;
+  if (englishDate?.[1]) {
+    const parts = englishDate[1].replace(',', '').split(/\s+/);
+    const monthIndex = [
+      'january',
+      'february',
+      'march',
+      'april',
+      'may',
+      'june',
+      'july',
+      'august',
+      'september',
+      'october',
+      'november',
+      'december',
+    ].indexOf(parts[0].toLowerCase());
+    const day = Number(parts[1]);
+    const year = Number(parts[2]);
+
+    if (monthIndex >= 0 && day && year) {
+      return formatDate(year, monthIndex + 1, day);
+    }
   }
 
-  const parts = match[1].replace(',', '').split(/\s+/);
-  const monthIndex = [
-    'january',
-    'february',
-    'march',
-    'april',
-    'may',
-    'june',
-    'july',
-    'august',
-    'september',
-    'october',
-    'november',
-    'december',
-  ].indexOf(parts[0].toLowerCase());
-  const day = Number(parts[1]);
-  const year = Number(parts[2]);
+  const numericDate = text.match(
+    /(?:ends?|until|by|deadline|endet|bis|teilnahmeschluss|einsendeschluss)?\s*(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/i
+  );
 
-  if (monthIndex < 0 || !day || !year) {
-    return null;
+  if (numericDate) {
+    const day = Number(numericDate[1]);
+    const month = Number(numericDate[2]);
+    const rawYear = Number(numericDate[3]);
+    const year = rawYear < 100 ? 2000 + rawYear : rawYear;
+
+    if (isValidDateParts(year, month, day)) {
+      return formatDate(year, month, day);
+    }
   }
 
-  return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const isoDate = text.match(/(?:ends?|until|by|deadline|endet|bis)?\s*(\d{4})-(\d{1,2})-(\d{1,2})/i);
+
+  if (isoDate) {
+    const year = Number(isoDate[1]);
+    const month = Number(isoDate[2]);
+    const day = Number(isoDate[3]);
+
+    if (isValidDateParts(year, month, day)) {
+      return formatDate(year, month, day);
+    }
+  }
+
+  return null;
+}
+
+function isEndedGiveaway(rawPost: RawPost, endDate?: string | null) {
+  const text = `${rawPost.title} ${rawPost.description} ${rawPost.full_text ?? ''}`.toLowerCase();
+  const endedPatterns = [
+    /\bexpired\b/,
+    /\bclosed\b/,
+    /\bended\b/,
+    /\bgiveaway over\b/,
+    /\bcontest over\b/,
+    /\bentries closed\b/,
+    /\bwinner announced\b/,
+    /\bwinners announced\b/,
+    /\bwinner selected\b/,
+    /\bwinners selected\b/,
+    /\bbeendet\b/,
+    /\babgelaufen\b/,
+    /\bgeschlossen\b/,
+    /\bgewinnspiel vorbei\b/,
+    /\bverlosung vorbei\b/,
+    /\bteilnahmeschluss erreicht\b/,
+    /\bgewinner steht fest\b/,
+    /\bgewinner bekanntgegeben\b/,
+  ];
+
+  if (endedPatterns.some((pattern) => pattern.test(text))) {
+    return true;
+  }
+
+  if (!endDate) {
+    return false;
+  }
+
+  const parsedEndDate = new Date(`${endDate}T23:59:59.999Z`);
+  return Number.isFinite(parsedEndDate.getTime()) && parsedEndDate.getTime() < Date.now();
+}
+
+function formatDate(year: number, month: number, day: number) {
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function isValidDateParts(year: number, month: number, day: number) {
+  if (year < 2020 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) {
+    return false;
+  }
+
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
 function inferRequirements(rawPost: RawPost) {
