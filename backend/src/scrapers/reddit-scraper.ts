@@ -16,6 +16,17 @@ type RedditListingChild = {
   };
 };
 
+const giveawaySubreddits = new Set([
+  'giveaways',
+  'sweepstakes',
+  'randomactsofgaming',
+  'freegamefindings',
+  'efreebies',
+  'contests',
+  'freebies',
+  'free',
+]);
+
 const redditSources = [
   ...[
     'giveaways',
@@ -52,6 +63,7 @@ export async function scrapeReddit(): Promise<RawPost[]> {
   const maxPosts = Number(process.env.SCRAPER_MAX_RAW_POSTS || 0);
   const posts: RawPost[] = [];
   const seenUrls = new Set<string>();
+  const sourceSummaries: string[] = [];
 
   for (const source of redditSources) {
     try {
@@ -92,9 +104,16 @@ export async function scrapeReddit(): Promise<RawPost[]> {
       }
 
       console.log(`✅ Scraped ${source.label}: ${matchedPosts} giveaway candidates`);
+      sourceSummaries.push(`${source.label}: ${children.length} read, ${matchedPosts} matched`);
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       console.error(`❌ Error scraping ${source.label}:`, error);
+      sourceSummaries.push(`${source.label}: failed (${message})`);
     }
+  }
+
+  if (posts.length === 0) {
+    throw new Error(`Reddit returned 0 giveaway candidates. ${sourceSummaries.slice(0, 6).join(' | ')}`);
   }
 
   return posts;
@@ -107,7 +126,14 @@ function isRecentPost(createdUtc?: number) {
   return postAge <= 30 * 24 * 60 * 60 * 1000;
 }
 
-function isGiveawayCandidate(post: { title?: string; selftext?: string; url?: string; url_overridden_by_dest?: string }) {
+function isGiveawayCandidate(post: {
+  subreddit?: string;
+  title?: string;
+  selftext?: string;
+  url?: string;
+  url_overridden_by_dest?: string;
+}) {
+  const subreddit = post.subreddit?.toLowerCase();
   const text = `${post.title || ''}\n${post.selftext || ''}\n${post.url_overridden_by_dest || ''}\n${post.url || ''}`.toLowerCase();
   const includePatterns = [
     /\bgiveaway\b/,
@@ -124,6 +150,12 @@ function isGiveawayCandidate(post: { title?: string; selftext?: string; url?: st
     /\bprize\b/,
     /\bfreebies?\b/,
     /\bcompetition\b/,
+    /\bsteam key\b/,
+    /\bkey drop\b/,
+    /\bcode giveaway\b/,
+    /\bclaim\b/,
+    /\bfree game\b/,
+    /\bfree copy\b/,
   ];
   const excludePatterns = [
     /\bexpired\b/,
@@ -134,12 +166,19 @@ function isGiveawayCandidate(post: { title?: string; selftext?: string; url?: st
     /\bquestion\b/,
     /\brequest\b/,
     /\blooking for\b/,
+    /\btrade\b/,
+    /\bselling\b/,
+    /\bbuying\b/,
   ];
 
-  return (
-    includePatterns.some((pattern) => pattern.test(text)) &&
-    !excludePatterns.some((pattern) => pattern.test(text))
-  );
+  const excluded = excludePatterns.some((pattern) => pattern.test(text));
+  if (excluded) return false;
+
+  if (includePatterns.some((pattern) => pattern.test(text))) {
+    return true;
+  }
+
+  return Boolean(subreddit && giveawaySubreddits.has(subreddit) && text.length > 8);
 }
 
 async function fetchRedditJson(url: string) {
