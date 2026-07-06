@@ -544,17 +544,27 @@ export default function Home() {
               <p className="text-sm text-[#627083]">All Giveaways. One App.</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="hidden items-center gap-2 rounded-md border border-[#cad2dc] bg-white px-3 py-2 text-sm font-semibold sm:flex">
-              {isLocked ? <Lock size={16} /> : <Clock size={16} />}
-              {isPremium ? "Premium active" : isLocked ? "Premium required" : `Trial access: ${formatDuration(secondsRemaining)}`}
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2">
+              <div className="hidden items-center gap-2 rounded-md border border-[#cad2dc] bg-white px-3 py-2 text-sm font-semibold sm:flex">
+                {isLocked ? <Lock size={16} /> : <Clock size={16} />}
+                {isPremium ? "Premium active" : isLocked ? "Premium required" : `Trial access: ${formatDuration(secondsRemaining)}`}
+              </div>
+              <button
+                onClick={signOut}
+                className="rounded-md border border-[#cad2dc] bg-white px-3 py-2 text-sm font-semibold hover:bg-[#eef2f6]"
+              >
+                Sign out
+              </button>
             </div>
-            <button
-              onClick={signOut}
-              className="rounded-md border border-[#cad2dc] bg-white px-3 py-2 text-sm font-semibold hover:bg-[#eef2f6]"
-            >
-              Sign out
-            </button>
+            {!isPremium && !isLocked && (
+              <button
+                onClick={startCheckout}
+                className="hidden rounded-md bg-[#b45309] px-3 py-2 text-xs font-bold text-white hover:bg-[#92400e] sm:block"
+              >
+                Limited Offer: first month for $2.99
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -579,7 +589,6 @@ export default function Home() {
                 isScrapingNow={isScrapingNow}
                 onEnter={handleEnter}
                 onRunScrape={runScrapeNow}
-                onUpgrade={startCheckout}
                 operationsMessage={operationsMessage}
                 onApplyFilters={() => {
                   setAppliedFilters(draftFilters);
@@ -928,7 +937,6 @@ function FeedView({
   isScrapingNow,
   onEnter,
   onRunScrape,
-  onUpgrade,
   operationsMessage,
   onApplyFilters,
   onResetFilters,
@@ -943,7 +951,6 @@ function FeedView({
   isScrapingNow: boolean;
   onEnter: (giveaway: Giveaway) => void;
   onRunScrape: () => void;
-  onUpgrade: () => void;
   operationsMessage: string;
   onApplyFilters: () => void;
   onResetFilters: () => void;
@@ -951,7 +958,7 @@ function FeedView({
   setFiltersOpen: (value: boolean | ((value: boolean) => boolean)) => void;
 }) {
   return (
-    <section className="grid gap-4 lg:grid-cols-[1fr_320px]">
+    <section className="space-y-4">
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
@@ -967,7 +974,7 @@ function FeedView({
               className="flex items-center gap-2 rounded-md border border-[#cad2dc] bg-white px-3 py-2 text-sm font-semibold text-[#17202a] hover:bg-[#eef2f6] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <RefreshCw className={isScrapingNow ? "animate-spin" : ""} size={16} />
-              {isScrapingNow ? "Aktualisiere..." : "Aktualisieren"}
+              {isScrapingNow ? "Refreshing..." : "Refresh"}
             </button>
             <button
               onClick={() => setFiltersOpen((open) => !open)}
@@ -1008,7 +1015,7 @@ function FeedView({
                 SocialWinia only shows direct giveaway posts here. Overview pages, hashtag pages, and platform search
                 pages are hidden so the Enter button always points to a real giveaway.
               </p>
-              <p className="mt-2">Click Aktualisieren to search for new direct giveaway links.</p>
+              <p className="mt-2">Click Refresh to search for new direct giveaway links.</p>
             </div>
           )}
 
@@ -1074,24 +1081,6 @@ function FeedView({
         </div>
       </div>
 
-      <aside className="space-y-3">
-        <div className="rounded-md border border-[#d7dde5] bg-white p-4">
-          <h3 className="font-bold">Available Today</h3>
-          <p className="mt-2 text-3xl font-bold">547</p>
-          <p className="text-sm text-[#627083]">new active giveaways</p>
-        </div>
-        <div className="rounded-md border border-[#d7dde5] bg-white p-4">
-          <h3 className="font-bold">Limited Offer</h3>
-          <p className="mt-2 text-sm text-[#627083]">Upgrade within the next 2 hours and get your first month for $2.99.</p>
-          <button
-            onClick={onUpgrade}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-[#b45309] px-3 py-2 text-sm font-semibold text-white hover:bg-[#92400e]"
-          >
-            <CreditCard size={16} />
-            Upgrade
-          </button>
-        </div>
-      </aside>
     </section>
   );
 }
