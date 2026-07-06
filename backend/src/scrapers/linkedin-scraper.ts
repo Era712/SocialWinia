@@ -2,7 +2,7 @@ import { scrapingBeeClient } from '../config/scrapingbee';
 import { RawPost } from '../types';
 
 export async function scrapeLinkedIn(): Promise<RawPost[]> {
-  const hashtags = ['giveaway', 'contest', 'win', 'sweepstakes', 'competition'];
+  const hashtags = ['giveaway', 'gewinnspiel', 'verlosung', 'contest', 'win', 'sweepstakes', 'competition', 'gratis', 'kostenlos'];
   const posts: RawPost[] = [];
 
   for (const hashtag of hashtags) {

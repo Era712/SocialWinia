@@ -2,7 +2,7 @@ import { scrapingBeeClient } from '../config/scrapingbee';
 import { RawPost } from '../types';
 
 export async function scrapeTikTok(): Promise<RawPost[]> {
-  const hashtags = ['giveaway', 'contest', 'win', 'sweepstakes', 'giveawaycontest'];
+  const hashtags = ['giveaway', 'gewinnspiel', 'verlosung', 'contest', 'win', 'sweepstakes', 'giveawaycontest', 'gratis', 'kostenlos'];
   const posts: RawPost[] = [];
 
   for (const hashtag of hashtags) {

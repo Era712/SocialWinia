@@ -19,30 +19,26 @@ export async function scrapeTelegram(): Promise<RawPost[]> {
       const html = await scrapingBeeClient.fetch(url, { renderJs: true });
       
       // Telegram embeds messages in HTML
-      const messageMatches = html.matchAll(/<div class="tgme_widget_message_text js-message_text"[^>]*>(.*?)<\/div>/gs);
-      const dateMatches = html.matchAll(/<time[^>]*datetime="([^"]*)"[^>]*>/g);
+      const messageMatches = html.matchAll(/<div class="tgme_widget_message\b[^>]*data-post="([^"]+)"[\s\S]*?<div class="tgme_widget_message_text js-message_text"[^>]*>([\s\S]*?)<\/div>[\s\S]*?<time[^>]*datetime="([^"]*)"[^>]*>/g);
       const authorMatch = html.match(/<div class="tgme_channel_info_header_title"[^>]*><span[^>]*>([^<]*)<\/span>/);
       const subscribersMatch = html.match(/<div class="tgme_channel_info_counter"[^>]*><span class="counter_value">([^<]*)<\/span>/);
 
       const messages = Array.from(messageMatches);
-      const dates = Array.from(dateMatches);
       const author = authorMatch?.[1] || channel;
       const subscribers = subscribersMatch?.[1] || '0';
 
       for (let i = 0; i < Math.min(messages.length, 20); i++) {
-        const messageText = messages[i][1].replace(/<[^>]*>/g, '').trim();
-        const dateStr = dates[i]?.[1] || new Date().toISOString();
+        const postId = messages[i][1];
+        const messageText = messages[i][2].replace(/<[^>]*>/g, '').trim();
+        const dateStr = messages[i][3] || new Date().toISOString();
 
-        // Filter for giveaway-related content
-        if (!messageText.toLowerCase().includes('giveaway') && 
-            !messageText.toLowerCase().includes('contest') &&
-            !messageText.toLowerCase().includes('win')) continue;
+        if (!isGiveawayText(messageText)) continue;
 
         posts.push({
           platform: 'telegram',
           title: messageText.slice(0, 100),
           description: messageText,
-          url: `https://t.me/${channel}`,
+          url: `https://t.me/${postId}`,
           organizer: author,
           follower_count: parseInt(subscribers.replace(/[^0-9]/g, '')) || 0,
           is_verified: false,
@@ -58,4 +54,24 @@ export async function scrapeTelegram(): Promise<RawPost[]> {
   }
 
   return posts;
+}
+
+function isGiveawayText(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  return [
+    'giveaway',
+    'contest',
+    'sweepstakes',
+    'freebie',
+    'win',
+    'gewinnspiel',
+    'verlosung',
+    'zu gewinnen',
+    'gewinne',
+    'gewinnen',
+    'verlose',
+    'verlost',
+    'gratis',
+    'kostenlos',
+  ].some((keyword) => lowerText.includes(keyword));
 }

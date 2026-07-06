@@ -2,7 +2,18 @@ import { scrapingBeeClient } from '../config/scrapingbee';
 import { RawPost } from '../types';
 
 export async function scrapeYouTube(): Promise<RawPost[]> {
-  const searchTerms = ['giveaway', 'contest', 'win', 'sweepstakes', 'free giveaway'];
+  const searchTerms = [
+    'giveaway',
+    'gewinnspiel',
+    'verlosung',
+    'zu gewinnen',
+    'contest',
+    'win',
+    'sweepstakes',
+    'free giveaway',
+    'gratis gewinnen',
+    'kostenlos gewinnen',
+  ];
   const posts: RawPost[] = [];
 
   for (const term of searchTerms) {

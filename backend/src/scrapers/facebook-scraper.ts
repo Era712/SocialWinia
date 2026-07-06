@@ -2,7 +2,7 @@ import { scrapingBeeClient } from '../config/scrapingbee';
 import { RawPost } from '../types';
 
 export async function scrapeFacebook(): Promise<RawPost[]> {
-  const hashtags = ['giveaway', 'contest', 'win', 'sweepstakes', 'freebie'];
+  const hashtags = ['giveaway', 'gewinnspiel', 'verlosung', 'contest', 'win', 'sweepstakes', 'freebie', 'gratis', 'kostenlos'];
   const posts: RawPost[] = [];
 
   for (const hashtag of hashtags) {
