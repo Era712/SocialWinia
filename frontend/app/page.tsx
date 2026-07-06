@@ -550,11 +550,11 @@ export default function Home() {
                 {isLocked ? <Lock size={16} /> : <Clock size={16} />}
                 <span className="flex flex-col leading-tight">
                   <span>
-                    {isPremium ? "Premium active" : isLocked ? "Premium required" : `Trial access: ${formatDuration(secondsRemaining)}`}
+                    {isPremium ? "Premium active" : isLocked ? "Premium required" : `Trial access ends in ${formatDuration(secondsRemaining)}`}
                   </span>
                   {!isPremium && !isLocked && offerSecondsRemaining > 0 && (
                     <span className="mt-1 text-xs font-bold text-[#ff8ac4]">
-                      If you upgrade in {formatDuration(offerSecondsRemaining)}, your first month is $2.99.
+                      Upgrade in {formatDuration(offerSecondsRemaining)} for your first month at $2.99.
                     </span>
                   )}
                 </span>
