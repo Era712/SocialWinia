@@ -458,9 +458,9 @@ export default function Home() {
 
   if (authLoading) {
     return (
-      <main className="grid min-h-screen place-items-center bg-[#f6f7f9] px-4 text-[#17202a]">
-        <div className="rounded-md border border-[#d7dde5] bg-white p-6 text-center">
-          <Gift className="mx-auto mb-3 text-[#0f766e]" size={32} />
+      <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_50%_0%,rgba(255,210,63,0.14),transparent_28%),linear-gradient(180deg,#0b2f25_0%,#071713_100%)] px-4 text-[#fff8e7]">
+        <div className="rounded-md border border-[#1f6f58] bg-[#12372d] p-6 text-center shadow-[0_20px_70px_rgba(0,0,0,0.42)]">
+          <Gift className="mx-auto mb-3 text-[#ffd23f]" size={32} />
           <p className="font-semibold">Loading SocialWinia...</p>
         </div>
       </main>
@@ -480,8 +480,8 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0f1117] text-[#f8f3e7]">
-      <header className="border-b border-[#3a3140] bg-[#141019] shadow-[0_12px_40px_rgba(0,0,0,0.32)]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_50%_0%,rgba(255,210,63,0.12),transparent_28%),radial-gradient(circle_at_15%_18%,rgba(32,184,255,0.14),transparent_24%),linear-gradient(180deg,#0b2f25_0%,#071713_100%)] text-[#fff8e7]">
+      <header className="border-b border-[#1f6f58] bg-[#0b1117] shadow-[0_12px_40px_rgba(0,0,0,0.38)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
             <img
@@ -490,18 +490,18 @@ export default function Home() {
               className="h-12 w-auto max-w-[190px] object-contain sm:h-14 sm:max-w-[230px]"
             />
             <div>
-              <p className="text-sm text-[#c9b99a]">All Giveaways. One App.</p>
+              <p className="text-sm text-[#cbe7d6]">All Giveaways. One App.</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
-              <div className="hidden items-center gap-2 rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] sm:flex">
+              <div className="hidden items-center gap-2 rounded-md border border-[#2c6f58] bg-[#102f27] px-3 py-2 text-sm font-semibold text-[#fff8e7] sm:flex">
                 {isLocked ? <Lock size={16} /> : <Clock size={16} />}
                 {isPremium ? "Premium active" : isLocked ? "Premium required" : `Trial access: ${formatDuration(secondsRemaining)}`}
               </div>
               <button
                 onClick={signOut}
-                className="rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
+                className="rounded-md border border-[#2c6f58] bg-[#102f27] px-3 py-2 text-sm font-semibold text-[#fff8e7] hover:bg-[#174638]"
               >
                 Sign out
               </button>
@@ -509,7 +509,7 @@ export default function Home() {
             {!isPremium && !isLocked && (
               <button
                 onClick={startCheckout}
-                className="hidden rounded-md bg-[#8b1e1e] px-3 py-2 text-xs font-bold text-[#fff7ed] hover:bg-[#991b1b] sm:block"
+                className="hidden rounded-md bg-[#ff2f8f] px-3 py-2 text-xs font-bold text-[#fff8e7] shadow-[0_0_24px_rgba(255,47,143,0.25)] hover:bg-[#ff5aa8] sm:block"
               >
                 Limited Offer: first month for $2.99
               </button>
@@ -519,7 +519,7 @@ export default function Home() {
       </header>
 
       <div className="mx-auto max-w-6xl px-4 py-5">
-        <nav className="mb-5 grid grid-cols-2 gap-2 rounded-md border border-[#3a3140] bg-[#17151f] p-1 shadow-[0_10px_30px_rgba(0,0,0,0.22)]">
+        <nav className="mb-5 grid grid-cols-2 gap-2 rounded-md border border-[#1f6f58] bg-[#12372d] p-1 shadow-[0_10px_30px_rgba(0,0,0,0.28)]">
           <TabButton active={view === "feed"} icon={<Gift size={17} />} label="Feed" onClick={() => setView("feed")} />
           <TabButton active={view === "profile"} icon={<User size={17} />} label="Profile" onClick={() => setView("profile")} />
         </nav>
@@ -789,7 +789,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={`flex items-center justify-center gap-2 rounded px-3 py-2 text-sm font-semibold ${
-        active ? "bg-[#d4af37] text-[#141019]" : "text-[#c9b99a] hover:bg-[#211a27] hover:text-[#f8f3e7]"
+        active ? "bg-[#ffd23f] text-[#0b1117]" : "text-[#cbe7d6] hover:bg-[#174638] hover:text-[#fff8e7]"
       }`}
     >
       {icon}
@@ -812,8 +812,8 @@ function AuthView({
   onTestLogin?: () => void;
 }) {
   return (
-    <main className="grid min-h-screen place-items-center bg-[#0f1117] px-4 text-[#f8f3e7]">
-      <section className="w-full max-w-md rounded-md border border-[#3a3140] bg-[#17151f] p-6 shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
+    <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_50%_0%,rgba(255,210,63,0.14),transparent_28%),radial-gradient(circle_at_20%_20%,rgba(255,47,143,0.16),transparent_24%),linear-gradient(180deg,#0b2f25_0%,#071713_100%)] px-4 text-[#fff8e7]">
+      <section className="w-full max-w-md rounded-md border border-[#1f6f58] bg-[#12372d] p-6 shadow-[0_20px_70px_rgba(0,0,0,0.42)]">
         <div className="mb-5 flex items-center gap-3">
           <img
             src="/socialwinia-logo.png"
@@ -821,32 +821,32 @@ function AuthView({
             className="h-16 w-auto max-w-[250px] object-contain"
           />
           <div>
-            <p className="text-sm text-[#c9b99a]">All Giveaways. One App.</p>
+            <p className="text-sm text-[#cbe7d6]">All Giveaways. One App.</p>
           </div>
         </div>
 
-        <div className="mb-5 rounded-md border border-[#5a4930] bg-[#1b1720] p-4">
+        <div className="mb-5 rounded-md border border-[#2c6f58] bg-[#102f27] p-4">
           <p className="font-bold">Start your 4-hour full access trial</p>
-          <p className="mt-1 text-sm text-[#c9b99a]">
+          <p className="mt-1 text-sm text-[#cbe7d6]">
             Enter only your email. No password, name, phone number or extra personal data.
           </p>
         </div>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-bold text-[#f8f3e7]">Email address</span>
+          <span className="mb-2 block text-sm font-bold text-[#fff8e7]">Email address</span>
           <input
             type="email"
             value={email}
             onChange={(event) => onEmailChange(event.target.value)}
             placeholder="you@example.com"
-            className="w-full rounded-md border border-[#5a4930] bg-[#0f1117] px-3 py-3 text-[#f8f3e7] outline-none placeholder:text-[#81735f] focus:border-[#d4af37]"
+            className="w-full rounded-md border border-[#2c6f58] bg-[#071713] px-3 py-3 text-[#fff8e7] outline-none placeholder:text-[#7fb59b] focus:border-[#ffd23f]"
           />
         </label>
 
         <button
           onClick={onSubmit}
           disabled={!email.includes("@")}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-[#d4af37] px-4 py-3 font-semibold text-[#141019] hover:bg-[#e4c85d] disabled:cursor-not-allowed disabled:bg-[#5a4930] disabled:text-[#a99b80]"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-[#ffd23f] px-4 py-3 font-semibold text-[#0b1117] shadow-[0_0_28px_rgba(255,210,63,0.22)] hover:bg-[#ffe36d] disabled:cursor-not-allowed disabled:bg-[#2c6f58] disabled:text-[#7fb59b]"
         >
           <Mail size={18} />
           Send magic link
@@ -855,7 +855,7 @@ function AuthView({
         {onTestLogin && (
           <button
             onClick={onTestLogin}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-[#5a4930] bg-[#1b1720] px-4 py-3 font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-[#2c6f58] bg-[#102f27] px-4 py-3 font-semibold text-[#fff8e7] hover:bg-[#174638]"
           >
             Continue as test user
           </button>
@@ -906,7 +906,7 @@ function FeedView({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">Giveaway Feed</h2>
-            <p className="text-sm text-[#c9b99a]">
+            <p className="text-sm text-[#cbe7d6]">
               {count} matching giveaways found · {dataSource === "live" ? "Live data" : "Demo data"}
             </p>
           </div>
@@ -914,14 +914,14 @@ function FeedView({
             <button
               onClick={onRunScrape}
               disabled={isScrapingNow}
-              className="flex items-center gap-2 rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26] disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex items-center gap-2 rounded-md border border-[#2c6f58] bg-[#102f27] px-3 py-2 text-sm font-semibold text-[#fff8e7] hover:bg-[#174638] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <RefreshCw className={isScrapingNow ? "animate-spin" : ""} size={16} />
               {isScrapingNow ? "Refreshing..." : "Refresh"}
             </button>
             <button
               onClick={() => setFiltersOpen((open) => !open)}
-              className="flex items-center gap-2 rounded-md bg-[#0f766e] px-3 py-2 text-sm font-semibold text-white hover:bg-[#115e59]"
+              className="flex items-center gap-2 rounded-md bg-[#ffd23f] px-3 py-2 text-sm font-semibold text-[#0b1117] hover:bg-[#ffe36d]"
             >
               <Filter size={16} />
               {filtersOpen ? "Hide filters" : "Filters"}
@@ -930,7 +930,7 @@ function FeedView({
         </div>
 
         {operationsMessage && (
-          <div className="rounded-md border border-[#5a4930] bg-[#1b1720] px-4 py-3 text-sm font-semibold text-[#c9b99a]">
+          <div className="rounded-md border border-[#2c6f58] bg-[#102f27] px-4 py-3 text-sm font-semibold text-[#cbe7d6]">
             {operationsMessage}
           </div>
         )}
@@ -945,15 +945,15 @@ function FeedView({
         )}
 
         {dataSource === "demo" && (
-          <div className="rounded-md border border-[#5a4930] bg-[#1b1720] px-4 py-3 text-sm font-semibold text-[#c9b99a]">
+          <div className="rounded-md border border-[#2c6f58] bg-[#102f27] px-4 py-3 text-sm font-semibold text-[#cbe7d6]">
             Demo giveaways use example discovery links. Live scraped giveaways open the exact original post.
           </div>
         )}
 
         <div className="space-y-3">
           {giveaways.length === 0 && (
-            <div className="rounded-md border border-[#3a3140] bg-[#17151f] p-5 text-sm text-[#c9b99a]">
-              <h3 className="text-lg font-bold text-[#f8f3e7]">No exact giveaway links yet</h3>
+            <div className="rounded-md border border-[#1f6f58] bg-[#12372d] p-5 text-sm text-[#cbe7d6] shadow-[0_10px_30px_rgba(0,0,0,0.22)]">
+              <h3 className="text-lg font-bold text-[#fff8e7]">No exact giveaway links yet</h3>
               <p className="mt-2">
                 SocialWinia only shows direct giveaway posts here. Overview pages, hashtag pages, and platform search
                 pages are hidden so the Enter button always points to a real giveaway.
@@ -967,8 +967,8 @@ function FeedView({
               key={giveaway.id}
               className={`rounded-md border p-4 ${
                 giveaway.visited
-                  ? "border-[#403846] bg-[#1a1b22] text-[#8f8790]"
-                  : "border-[#3a3140] bg-[#17151f] shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
+                  ? "border-[#265244] bg-[#10241f] text-[#8fb7a6]"
+                  : "border-[#1f6f58] bg-[#12372d] shadow-[0_10px_30px_rgba(0,0,0,0.24)]"
               }`}
             >
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -977,8 +977,8 @@ function FeedView({
                     <span
                       className={`rounded px-2 py-1 text-xs font-bold ${
                         giveaway.visited
-                          ? "bg-[#2b2d36] text-[#9aa5b1]"
-                          : "bg-[#123a32] text-[#8de0be]"
+                          ? "bg-[#18342c] text-[#91c7b0]"
+                          : "bg-[#104c3a] text-[#7dffc7]"
                       }`}
                     >
                       {giveaway.platform}
@@ -986,34 +986,34 @@ function FeedView({
                     <span
                       className={`rounded px-2 py-1 text-xs font-bold ${
                         giveaway.visited
-                          ? "bg-[#2b2d36] text-[#9aa5b1]"
-                          : "bg-[#3b2f16] text-[#f4d06f]"
+                          ? "bg-[#18342c] text-[#91c7b0]"
+                          : "bg-[#4a3a13] text-[#ffe36d]"
                       }`}
                     >
                       CHF {giveaway.value.toLocaleString("en-US")}
                     </span>
                     {giveaway.visited && (
-                      <span className="flex items-center gap-1 rounded bg-[#1d2f4d] px-2 py-1 text-xs font-bold text-[#93c5fd]">
+                      <span className="flex items-center gap-1 rounded bg-[#123b55] px-2 py-1 text-xs font-bold text-[#6bd5ff]">
                         <CheckCircle2 size={13} />
                         Visited
                       </span>
                     )}
                     {giveaway.processingMethod === "heuristic_fallback" && (
-                      <span className="rounded bg-[#3f1d1d] px-2 py-1 text-xs font-bold text-[#fca5a5]">
+                      <span className="rounded bg-[#4b1634] px-2 py-1 text-xs font-bold text-[#ff8ac4]">
                         AI fallback
                       </span>
                     )}
                   </div>
-                  <h3 className={`truncate text-lg font-bold ${giveaway.visited ? "text-[#8f8790]" : "text-[#f8f3e7]"}`}>
+                  <h3 className={`truncate text-lg font-bold ${giveaway.visited ? "text-[#8fb7a6]" : "text-[#fff8e7]"}`}>
                     {giveaway.title}
                   </h3>
-                  <p className={`mt-1 text-sm ${giveaway.visited ? "text-[#8f8790]" : "text-[#c9b99a]"}`}>
+                  <p className={`mt-1 text-sm ${giveaway.visited ? "text-[#8fb7a6]" : "text-[#cbe7d6]"}`}>
                     {giveaway.organizer} · ends {giveaway.ends} · {giveaway.participants} participants
                   </p>
                 </div>
                 <button
                   onClick={() => onEnter(giveaway)}
-                  className="flex shrink-0 items-center justify-center gap-2 rounded-md bg-[#d4af37] px-4 py-2 text-sm font-semibold text-[#141019] hover:bg-[#f0c85a]"
+                  className="flex shrink-0 items-center justify-center gap-2 rounded-md bg-[#ffd23f] px-4 py-2 text-sm font-semibold text-[#0b1117] hover:bg-[#ffe36d]"
                 >
                   Enter
                   <ExternalLink size={16} />
@@ -1068,9 +1068,9 @@ function FilterView({
   };
 
   return (
-    <section className="rounded-md border border-[#3a3140] bg-[#17151f] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+    <section className="rounded-md border border-[#1f6f58] bg-[#12372d] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.24)]">
       <div className="mb-5 flex items-center gap-2">
-        <Search className="text-[#d4af37]" size={20} />
+        <Search className="text-[#ffd23f]" size={20} />
         <h2 className="text-2xl font-bold">Filters</h2>
       </div>
 
@@ -1115,7 +1115,7 @@ function FilterView({
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-[#c9b99a]">Minimum CHF</span>
+                <span className="mb-1 block text-xs font-semibold text-[#cbe7d6]">Minimum CHF</span>
                 <input
                   type="number"
                   min={0}
@@ -1123,11 +1123,11 @@ function FilterView({
                   step={50}
                   value={filter.minValue}
                   onChange={(event) => updateMinValue(Number(event.target.value))}
-                  className="w-full rounded-md border border-[#5a4930] bg-[#0f1117] px-3 py-2 text-[#f8f3e7] outline-none focus:border-[#d4af37]"
+                  className="w-full rounded-md border border-[#2c6f58] bg-[#071713] px-3 py-2 text-[#fff8e7] outline-none focus:border-[#ffd23f]"
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-[#c9b99a]">Maximum CHF</span>
+                <span className="mb-1 block text-xs font-semibold text-[#cbe7d6]">Maximum CHF</span>
                 <input
                   type="text"
                   min={0}
@@ -1136,7 +1136,7 @@ function FilterView({
                   inputMode="numeric"
                   value={filter.maxValue >= 10000 ? "10000+" : filter.maxValue}
                   onChange={(event) => updateMaxValueFromInput(event.target.value)}
-                  className="w-full rounded-md border border-[#5a4930] bg-[#0f1117] px-3 py-2 text-[#f8f3e7] outline-none focus:border-[#d4af37]"
+                  className="w-full rounded-md border border-[#2c6f58] bg-[#071713] px-3 py-2 text-[#fff8e7] outline-none focus:border-[#ffd23f]"
                 />
               </label>
             </div>
@@ -1162,8 +1162,8 @@ function FilterView({
                 }
                 className={`rounded-md border px-3 py-2 text-sm font-semibold ${
                   filter.status === value
-                    ? "border-[#d4af37] bg-[#d4af37] text-[#141019]"
-                    : "border-[#5a4930] bg-[#1b1720] text-[#f8f3e7] hover:bg-[#261d26]"
+                    ? "border-[#ffd23f] bg-[#ffd23f] text-[#0b1117]"
+                    : "border-[#2c6f58] bg-[#102f27] text-[#fff8e7] hover:bg-[#174638]"
                 }`}
               >
                 {label}
@@ -1172,16 +1172,16 @@ function FilterView({
           </div>
         </Field>
       </div>
-      <div className="mt-5 flex flex-col gap-2 border-t border-[#3a3140] pt-4 sm:flex-row sm:justify-end">
+      <div className="mt-5 flex flex-col gap-2 border-t border-[#1f6f58] pt-4 sm:flex-row sm:justify-end">
         <button
           onClick={onReset}
-          className="rounded-md border border-[#5a4930] bg-[#1b1720] px-4 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
+          className="rounded-md border border-[#2c6f58] bg-[#102f27] px-4 py-2 text-sm font-semibold text-[#fff8e7] hover:bg-[#174638]"
         >
           Reset
         </button>
         <button
           onClick={onApply}
-          className="rounded-md bg-[#d4af37] px-4 py-2 text-sm font-semibold text-[#141019] hover:bg-[#e4c85d]"
+          className="rounded-md bg-[#ffd23f] px-4 py-2 text-sm font-semibold text-[#0b1117] hover:bg-[#ffe36d]"
         >
           Apply filters
         </button>
@@ -1206,14 +1206,14 @@ function DualRangeSlider({
 
   return (
     <div>
-      <div className="mb-2 flex justify-between text-xs font-semibold text-[#c9b99a]">
+      <div className="mb-2 flex justify-between text-xs font-semibold text-[#cbe7d6]">
         <span>CHF {minValue.toLocaleString("en-US")}</span>
         <span>{maxValue >= 10000 ? "CHF 10,000+" : `CHF ${maxValue.toLocaleString("en-US")}`}</span>
       </div>
       <div className="relative h-8">
-        <div className="absolute left-0 right-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-[#3a3140]" />
+        <div className="absolute left-0 right-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-[#1f6f58]" />
         <div
-          className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[#d4af37]"
+          className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[#ffd23f]"
           style={{ left: `${minPercent}%`, right: `${100 - maxPercent}%` }}
         />
         <input
@@ -1261,8 +1261,8 @@ function MultiSelectGrid({
         onClick={() => onChange([])}
         className={`w-full rounded-md border px-3 py-2 text-left text-sm font-semibold ${
           selectedValues.length === 0
-            ? "border-[#d4af37] bg-[#d4af37] text-[#141019]"
-            : "border-[#5a4930] bg-[#1b1720] text-[#f8f3e7] hover:bg-[#261d26]"
+            ? "border-[#ffd23f] bg-[#ffd23f] text-[#0b1117]"
+            : "border-[#2c6f58] bg-[#102f27] text-[#fff8e7] hover:bg-[#174638]"
         }`}
       >
         {allLabel}
@@ -1278,8 +1278,8 @@ function MultiSelectGrid({
               onClick={() => onToggle(option)}
               className={`rounded-md border px-3 py-2 text-left text-sm font-semibold ${
                 selected
-                  ? "border-[#d4af37] bg-[#2a2417] text-[#f2d06b]"
-                  : "border-[#5a4930] bg-[#1b1720] text-[#f8f3e7] hover:bg-[#261d26]"
+                  ? "border-[#ffd23f] bg-[#31491d] text-[#ffea75]"
+                  : "border-[#2c6f58] bg-[#102f27] text-[#fff8e7] hover:bg-[#174638]"
               }`}
             >
               {option}
@@ -1294,7 +1294,7 @@ function MultiSelectGrid({
 function Field({ children, label }: { children: React.ReactNode; label: string }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-[#f8f3e7]">{label}</span>
+      <span className="mb-2 block text-sm font-bold text-[#fff8e7]">{label}</span>
       {children}
     </label>
   );
@@ -1320,10 +1320,10 @@ function ProfileView({
   return (
     <section className="grid gap-4 lg:grid-cols-2">
       <Panel icon={<Mail size={19} />} title="Account">
-        <p className="text-sm text-[#c9b99a]">{profile?.email || user.email}</p>
+        <p className="text-sm text-[#cbe7d6]">{profile?.email || user.email}</p>
         <button
           onClick={onChangeEmail}
-          className="mt-3 rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
+          className="mt-3 rounded-md border border-[#2c6f58] bg-[#102f27] px-3 py-2 text-sm font-semibold text-[#fff8e7] hover:bg-[#174638]"
         >
           Change email
         </button>
@@ -1331,44 +1331,44 @@ function ProfileView({
       <Panel icon={<Bell size={19} />} title="Notifications">
         <label className="flex items-center justify-between gap-3 text-sm">
           New giveaways
-          <input type="checkbox" defaultChecked className="size-5 accent-[#d4af37]" />
+          <input type="checkbox" defaultChecked className="size-5 accent-[#ffd23f]" />
         </label>
         <button
           onClick={onEditPreferences}
-          className="mt-3 rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
+          className="mt-3 rounded-md border border-[#2c6f58] bg-[#102f27] px-3 py-2 text-sm font-semibold text-[#fff8e7] hover:bg-[#174638]"
         >
           Edit preferences
         </button>
         {profileMessage && (
-          <p className="mt-3 rounded-md bg-[#123a32] px-3 py-2 text-sm font-semibold text-[#8de0be]">
+          <p className="mt-3 rounded-md bg-[#104c3a] px-3 py-2 text-sm font-semibold text-[#7dffc7]">
             {profileMessage}
           </p>
         )}
       </Panel>
       <Panel icon={<Gift size={19} />} title="Referral Program">
-        <p className="text-sm text-[#c9b99a]">Refer a friend: get 50% off one month for every successful referral.</p>
+        <p className="text-sm text-[#cbe7d6]">Refer a friend: get 50% off one month for every successful referral.</p>
       </Panel>
       <Panel icon={<Settings size={19} />} title="Subscription">
-        <p className="text-sm text-[#c9b99a]">
+        <p className="text-sm text-[#cbe7d6]">
           Status: {profile?.subscription_status === "active" ? "Premium active" : "Trial active"}
           {profile?.trial_ends_at ? ` · Trial ends ${formatDate(profile.trial_ends_at)}` : ""}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <button
             onClick={onUpgrade}
-            className="rounded-md bg-[#d4af37] px-3 py-2 text-sm font-semibold text-[#141019] hover:bg-[#f0c85a]"
+            className="rounded-md bg-[#ffd23f] px-3 py-2 text-sm font-semibold text-[#0b1117] hover:bg-[#ffe36d]"
           >
             Upgrade
           </button>
           <button
             onClick={onManageBilling}
-            className="rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
+            className="rounded-md border border-[#2c6f58] bg-[#102f27] px-3 py-2 text-sm font-semibold text-[#fff8e7] hover:bg-[#174638]"
           >
             Payment method
           </button>
           <button
             onClick={onManageBilling}
-            className="rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
+            className="rounded-md border border-[#2c6f58] bg-[#102f27] px-3 py-2 text-sm font-semibold text-[#fff8e7] hover:bg-[#174638]"
           >
             Cancel subscription
           </button>
@@ -1380,9 +1380,9 @@ function ProfileView({
 
 function Panel({ children, icon, title }: { children: React.ReactNode; icon: React.ReactNode; title: string }) {
   return (
-    <div className="rounded-md border border-[#3a3140] bg-[#17151f] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+    <div className="rounded-md border border-[#1f6f58] bg-[#12372d] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.24)]">
       <div className="mb-3 flex items-center gap-2">
-        <span className="text-[#d4af37]">{icon}</span>
+        <span className="text-[#ffd23f]">{icon}</span>
         <h2 className="text-lg font-bold">{title}</h2>
       </div>
       {children}
@@ -1392,16 +1392,16 @@ function Panel({ children, icon, title }: { children: React.ReactNode; icon: Rea
 
 function PremiumLock({ onUpgrade }: { onUpgrade: () => void }) {
   return (
-    <section className="mx-auto max-w-md rounded-md border border-[#3a3140] bg-[#17151f] p-6 text-center shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
-      <div className="mx-auto mb-4 grid size-12 place-items-center rounded-md bg-[#d4af37] text-[#141019]">
+    <section className="mx-auto max-w-md rounded-md border border-[#1f6f58] bg-[#12372d] p-6 text-center shadow-[0_20px_70px_rgba(0,0,0,0.42)]">
+      <div className="mx-auto mb-4 grid size-12 place-items-center rounded-md bg-[#ffd23f] text-[#0b1117]">
         <Lock size={24} />
       </div>
       <h2 className="text-2xl font-bold">Premium Required</h2>
-      <p className="mt-3 text-sm text-[#c9b99a]">Available today:</p>
+      <p className="mt-3 text-sm text-[#cbe7d6]">Available today:</p>
       <p className="mt-1 text-3xl font-bold">547 new giveaways</p>
       <button
         onClick={onUpgrade}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-[#d4af37] px-4 py-3 font-semibold text-[#141019] hover:bg-[#e4c85d]"
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-[#ffd23f] px-4 py-3 font-semibold text-[#0b1117] hover:bg-[#ffe36d]"
       >
         <CreditCard size={18} />
         Upgrade to Premium · $4.99 / month
