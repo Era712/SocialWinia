@@ -484,11 +484,12 @@ export default function Home() {
       <header className="border-b border-[#3a3140] bg-[#141019] shadow-[0_12px_40px_rgba(0,0,0,0.32)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="grid size-10 place-items-center rounded-md bg-[#d4af37] text-[#141019]">
-              <Gift size={22} />
-            </div>
+            <img
+              src="/socialwinia-logo.png"
+              alt="SocialWinia"
+              className="h-12 w-auto max-w-[190px] object-contain sm:h-14 sm:max-w-[230px]"
+            />
             <div>
-              <h1 className="text-xl font-bold">SocialWinia</h1>
               <p className="text-sm text-[#c9b99a]">All Giveaways. One App.</p>
             </div>
           </div>
@@ -814,11 +815,12 @@ function AuthView({
     <main className="grid min-h-screen place-items-center bg-[#0f1117] px-4 text-[#f8f3e7]">
       <section className="w-full max-w-md rounded-md border border-[#3a3140] bg-[#17151f] p-6 shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
         <div className="mb-5 flex items-center gap-3">
-          <div className="grid size-11 place-items-center rounded-md bg-[#d4af37] text-[#141019]">
-            <Gift size={23} />
-          </div>
+          <img
+            src="/socialwinia-logo.png"
+            alt="SocialWinia"
+            className="h-16 w-auto max-w-[250px] object-contain"
+          />
           <div>
-            <h1 className="text-2xl font-bold">SocialWinia</h1>
             <p className="text-sm text-[#c9b99a]">All Giveaways. One App.</p>
           </div>
         </div>
