@@ -78,7 +78,7 @@ const demoGiveaways = [
     platform: "Instagram",
     organizer: "gamezone_daily",
     ends: "July 2, 2026",
-    participants: "18.420",
+    followers: "18,420",
     category: "Gaming",
     visited: false,
     url: "https://www.instagram.com/explore/tags/giveaway/",
@@ -90,7 +90,7 @@ const demoGiveaways = [
     platform: "TikTok",
     organizer: "creatorhub",
     ends: "July 5, 2026",
-    participants: "54.102",
+    followers: "54,102",
     category: "Tech & Electronics",
     visited: true,
     url: "https://www.tiktok.com/tag/giveaway",
@@ -102,7 +102,7 @@ const demoGiveaways = [
     platform: "X",
     organizer: "dealradar",
     ends: "July 3, 2026",
-    participants: "7.314",
+    followers: "7,314",
     category: "Cash Prizes",
     visited: false,
     url: "https://x.com/search?q=%23giveaway",
@@ -114,7 +114,7 @@ const demoGiveaways = [
     platform: "YouTube",
     organizer: "travelnorth",
     ends: "July 28, 2026",
-    participants: "31.889",
+    followers: "31,889",
     category: "Travel",
     visited: false,
     url: "https://www.youtube.com/results?search_query=giveaway",
@@ -126,7 +126,7 @@ const demoGiveaways = [
     platform: "Reddit",
     organizer: "battlestation_mods",
     ends: "July 6, 2026",
-    participants: "3.870",
+    followers: "3,870",
     category: "Home & Living",
     visited: true,
     url: "https://www.reddit.com/r/giveaways/",
@@ -136,9 +136,9 @@ const demoGiveaways = [
 type Giveaway = {
   category: string;
   ends: string;
+  followers: string;
   id: string;
   organizer: string;
-  participants: string;
   platform: string;
   processingMethod?: string;
   title: string;
@@ -151,6 +151,7 @@ type BackendGiveaway = {
   category?: string | null;
   end_date?: string | null;
   id?: string;
+  followers?: number | null;
   organizer?: string | null;
   participants?: number | null;
   platform?: string | null;
@@ -172,6 +173,8 @@ const TEST_LOGIN_STORAGE_KEY = "socialwinia-test-login";
 const TEST_USER_ID = "00000000-0000-4000-8000-000000000001";
 const TEST_USER_EMAIL = "test@socialwinia.com";
 const SHOW_DEMO_GIVEAWAYS = process.env.NODE_ENV !== "production";
+const TRIAL_SECONDS = 4 * 60 * 60;
+const LIMITED_OFFER_SECONDS = 60 * 60;
 
 type ScrapeRunResult = {
   errors: string[];
@@ -188,7 +191,8 @@ export default function Home() {
   const [authLoading, setAuthLoading] = useState(true);
   const [authMessage, setAuthMessage] = useState("");
   const [email, setEmail] = useState("");
-  const [secondsRemaining, setSecondsRemaining] = useState(4 * 60 * 60);
+  const [secondsRemaining, setSecondsRemaining] = useState(TRIAL_SECONDS);
+  const [offerSecondsRemaining, setOfferSecondsRemaining] = useState(LIMITED_OFFER_SECONDS);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isScrapingNow, setIsScrapingNow] = useState(false);
@@ -299,7 +303,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!profile) {
-      setSecondsRemaining(4 * 60 * 60);
+      setSecondsRemaining(TRIAL_SECONDS);
+      setOfferSecondsRemaining(LIMITED_OFFER_SECONDS);
       return;
     }
 
@@ -309,6 +314,7 @@ export default function Home() {
         Math.floor((new Date(profile.trial_ends_at).getTime() - Date.now()) / 1000)
       );
       setSecondsRemaining(remaining);
+      setOfferSecondsRemaining(Math.min(LIMITED_OFFER_SECONDS, Math.max(0, remaining - (TRIAL_SECONDS - LIMITED_OFFER_SECONDS))));
     };
 
     updateRemaining();
@@ -509,13 +515,20 @@ export default function Home() {
         />
         <Crown className="absolute left-[46%] top-24 rotate-[-8deg] text-[#ffd23f] opacity-25" size={54} strokeWidth={1.7} />
         <Sparkles className="absolute right-[16%] top-28 rotate-12 text-[#fff8e7] opacity-18" size={48} strokeWidth={1.6} />
-        <Coins className="absolute left-[8%] top-40 rotate-[-14deg] text-[#ffd23f] opacity-18" size={44} strokeWidth={1.6} />
-        <Monitor className="absolute right-[8%] top-48 rotate-6 text-[#4bc7ff] opacity-16" size={50} strokeWidth={1.5} />
-        <Flame className="absolute left-[11%] top-[47%] rotate-[-10deg] text-[#ff8ac4] opacity-18" size={48} strokeWidth={1.7} />
-        <Gem className="absolute left-[29%] top-[54%] rotate-12 text-[#4bc7ff] opacity-18" size={42} strokeWidth={1.6} />
-        <Gift className="absolute right-[20%] top-[49%] rotate-[-8deg] text-[#ff8ac4] opacity-20" size={46} strokeWidth={1.6} />
-        <Trophy className="absolute right-[14%] top-[66%] rotate-6 text-[#ffd23f] opacity-20" size={50} strokeWidth={1.5} />
-        <Smartphone className="absolute left-[5%] top-[70%] rotate-[-7deg] text-[#4bc7ff] opacity-16" size={46} strokeWidth={1.6} />
+        <Coins className="absolute left-[8%] top-40 rotate-[-14deg] text-[#ffd23f] opacity-30 drop-shadow-[0_0_18px_rgba(255,210,63,0.55)]" size={44} strokeWidth={1.6} />
+        <Monitor className="absolute right-[8%] top-48 rotate-6 text-[#4bc7ff] opacity-28 drop-shadow-[0_0_18px_rgba(75,199,255,0.45)]" size={50} strokeWidth={1.5} />
+        <Flame className="absolute left-[11%] top-[47%] rotate-[-10deg] text-[#ff8ac4] opacity-32 drop-shadow-[0_0_18px_rgba(255,138,196,0.5)]" size={48} strokeWidth={1.7} />
+        <Gem className="absolute left-[29%] top-[54%] rotate-12 text-[#4bc7ff] opacity-30 drop-shadow-[0_0_18px_rgba(75,199,255,0.45)]" size={42} strokeWidth={1.6} />
+        <Gift className="absolute right-[20%] top-[49%] rotate-[-8deg] text-[#ff8ac4] opacity-34 drop-shadow-[0_0_18px_rgba(255,138,196,0.5)]" size={46} strokeWidth={1.6} />
+        <Trophy className="absolute right-[14%] top-[66%] rotate-6 text-[#ffd23f] opacity-32 drop-shadow-[0_0_18px_rgba(255,210,63,0.55)]" size={50} strokeWidth={1.5} />
+        <Smartphone className="absolute left-[5%] top-[70%] rotate-[-7deg] text-[#4bc7ff] opacity-26 drop-shadow-[0_0_18px_rgba(75,199,255,0.45)]" size={46} strokeWidth={1.6} />
+        <CreditCard className="absolute left-[14%] top-[26%] rotate-[-5deg] text-[#ffd23f] opacity-26 drop-shadow-[0_0_18px_rgba(255,210,63,0.42)]" size={42} strokeWidth={1.6} />
+        <Gift className="absolute right-[6%] top-[38%] rotate-12 text-[#b9ff4a] opacity-28 drop-shadow-[0_0_18px_rgba(185,255,74,0.45)]" size={48} strokeWidth={1.6} />
+        <Coins className="absolute right-[9%] top-[24%] rotate-[-16deg] text-[#ffd23f] opacity-26 drop-shadow-[0_0_18px_rgba(255,210,63,0.48)]" size={40} strokeWidth={1.6} />
+        <Sparkles className="absolute left-[36%] top-[18%] rotate-[-10deg] text-[#ff8ac4] opacity-28 drop-shadow-[0_0_18px_rgba(255,138,196,0.42)]" size={34} strokeWidth={1.7} />
+        <Crown className="absolute right-[31%] top-[16%] rotate-6 text-[#ffd23f] opacity-28 drop-shadow-[0_0_18px_rgba(255,210,63,0.48)]" size={42} strokeWidth={1.7} />
+        <Gem className="absolute right-[33%] top-[72%] rotate-[-12deg] text-[#4bc7ff] opacity-24 drop-shadow-[0_0_18px_rgba(75,199,255,0.4)]" size={38} strokeWidth={1.6} />
+        <Flame className="absolute right-[5%] top-[79%] rotate-12 text-[#ff8ac4] opacity-25 drop-shadow-[0_0_18px_rgba(255,138,196,0.45)]" size={42} strokeWidth={1.7} />
       </div>
       <header className="relative z-10 border-b border-[#1f6f58] bg-[#0b1117]/95 shadow-[0_12px_40px_rgba(0,0,0,0.38)] backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
@@ -539,8 +552,10 @@ export default function Home() {
                   <span>
                     {isPremium ? "Premium active" : isLocked ? "Premium required" : `Trial access: ${formatDuration(secondsRemaining)}`}
                   </span>
-                  {!isPremium && !isLocked && (
-                    <span className="mt-1 text-xs font-bold text-[#ff8ac4]">Limited Offer: first month for $2.99 if you upgrade within 1 hour</span>
+                  {!isPremium && !isLocked && offerSecondsRemaining > 0 && (
+                    <span className="mt-1 text-xs font-bold text-[#ff8ac4]">
+                      If you upgrade in {formatDuration(offerSecondsRemaining)}, your first month is $2.99.
+                    </span>
                   )}
                 </span>
               </button>
@@ -621,7 +636,7 @@ function mapBackendGiveaway(giveaway: BackendGiveaway): Giveaway {
     platform: formatPlatform(giveaway.platform || "Unknown"),
     organizer: giveaway.organizer || "unknown",
     ends: giveaway.end_date ? formatDate(giveaway.end_date) : "No end date",
-    participants: Number(giveaway.participants ?? 0).toLocaleString("en-US"),
+    followers: Number(giveaway.followers ?? giveaway.participants ?? 0).toLocaleString("en-US"),
     category: giveaway.category || "Other",
     processingMethod: giveaway.processing_method || "openai",
     url: giveaway.url || "#",
@@ -1063,7 +1078,7 @@ function FeedView({
                     {giveaway.title}
                   </h3>
                   <p className={`mt-1 text-sm ${giveaway.visited ? "text-[#8fb7a6]" : "text-[#cbe7d6]"}`}>
-                    {giveaway.organizer} · ends {giveaway.ends} · {giveaway.participants} participants
+                    {giveaway.organizer} · ends {giveaway.ends} · {giveaway.followers} followers
                   </p>
                 </div>
                 <button
