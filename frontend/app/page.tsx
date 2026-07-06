@@ -1,12 +1,10 @@
 "use client";
 
 import {
-  Activity,
   Bell,
   CheckCircle2,
   Clock,
   CreditCard,
-  Database,
   ExternalLink,
   Filter,
   Gift,
@@ -14,7 +12,6 @@ import {
   Mail,
   RefreshCw,
   Search,
-  Server,
   Settings,
   User,
 } from "lucide-react";
@@ -169,18 +166,6 @@ const TEST_USER_ID = "00000000-0000-4000-8000-000000000001";
 const TEST_USER_EMAIL = "test@socialwinia.com";
 const SHOW_DEMO_GIVEAWAYS = process.env.NODE_ENV !== "production";
 
-type BackendHealth = {
-  services: Record<"openai" | "scrapingbee" | "stripe" | "supabase", boolean>;
-  status: string;
-};
-
-type BackendStats = {
-  lastScrapedAt: string | null;
-  platformCounts: { count: number; platform: string }[];
-  todayGiveaways: number;
-  totalGiveaways: number;
-};
-
 type ScrapeRunResult = {
   errors: string[];
   fallbackCount: number;
@@ -199,10 +184,7 @@ export default function Home() {
   const [secondsRemaining, setSecondsRemaining] = useState(4 * 60 * 60);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [backendHealth, setBackendHealth] = useState<BackendHealth | null>(null);
-  const [backendStats, setBackendStats] = useState<BackendStats | null>(null);
   const [isScrapingNow, setIsScrapingNow] = useState(false);
-  const [scrapeResult, setScrapeResult] = useState<ScrapeRunResult | null>(null);
   const [operationsMessage, setOperationsMessage] = useState("");
   const [feedRefreshToken, setFeedRefreshToken] = useState(0);
   const [profileMessage, setProfileMessage] = useState("");
@@ -327,14 +309,6 @@ export default function Home() {
     return () => window.clearInterval(interval);
   }, [profile]);
 
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
-
-    loadOperationsData();
-  }, [user]);
-
   const isPremium = profile?.subscription_status === "active";
   const isLocked = Boolean(user && profile && !isPremium && secondsRemaining <= 0);
 
@@ -435,30 +409,6 @@ export default function Home() {
     window.location.href = payload.url;
   }
 
-  async function loadOperationsData() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-    try {
-      const [healthResponse, statsResponse] = await Promise.all([
-        fetch(`${apiUrl}/health`),
-        fetch(`${apiUrl}/stats`),
-      ]);
-
-      if (healthResponse.ok) {
-        setBackendHealth((await healthResponse.json()) as BackendHealth);
-      }
-
-      if (statsResponse.ok) {
-        setBackendStats((await statsResponse.json()) as BackendStats);
-      }
-
-      setOperationsMessage("");
-    } catch (error) {
-      setOperationsMessage("Backend is not reachable yet.");
-      console.warn("Could not load operations data.", error);
-    }
-  }
-
   async function runScrapeNow() {
     setIsScrapingNow(true);
     setOperationsMessage("");
@@ -476,9 +426,7 @@ export default function Home() {
         return;
       }
 
-      setScrapeResult(payload.data);
       setOperationsMessage("Scrape run finished.");
-      await loadOperationsData();
       setFeedRefreshToken((value) => value + 1);
     } catch (error) {
       setOperationsMessage("Scrape run could not be started.");
@@ -532,27 +480,27 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f6f7f9] text-[#17202a]">
-      <header className="border-b border-[#d7dde5] bg-white">
+    <main className="min-h-screen bg-[#0f1117] text-[#f8f3e7]">
+      <header className="border-b border-[#3a3140] bg-[#141019] shadow-[0_12px_40px_rgba(0,0,0,0.32)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="grid size-10 place-items-center rounded-md bg-[#0f766e] text-white">
+            <div className="grid size-10 place-items-center rounded-md bg-[#d4af37] text-[#141019]">
               <Gift size={22} />
             </div>
             <div>
               <h1 className="text-xl font-bold">SocialWinia</h1>
-              <p className="text-sm text-[#627083]">All Giveaways. One App.</p>
+              <p className="text-sm text-[#c9b99a]">All Giveaways. One App.</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
-              <div className="hidden items-center gap-2 rounded-md border border-[#cad2dc] bg-white px-3 py-2 text-sm font-semibold sm:flex">
+              <div className="hidden items-center gap-2 rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] sm:flex">
                 {isLocked ? <Lock size={16} /> : <Clock size={16} />}
                 {isPremium ? "Premium active" : isLocked ? "Premium required" : `Trial access: ${formatDuration(secondsRemaining)}`}
               </div>
               <button
                 onClick={signOut}
-                className="rounded-md border border-[#cad2dc] bg-white px-3 py-2 text-sm font-semibold hover:bg-[#eef2f6]"
+                className="rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
               >
                 Sign out
               </button>
@@ -560,7 +508,7 @@ export default function Home() {
             {!isPremium && !isLocked && (
               <button
                 onClick={startCheckout}
-                className="hidden rounded-md bg-[#b45309] px-3 py-2 text-xs font-bold text-white hover:bg-[#92400e] sm:block"
+                className="hidden rounded-md bg-[#8b1e1e] px-3 py-2 text-xs font-bold text-[#fff7ed] hover:bg-[#991b1b] sm:block"
               >
                 Limited Offer: first month for $2.99
               </button>
@@ -570,7 +518,7 @@ export default function Home() {
       </header>
 
       <div className="mx-auto max-w-6xl px-4 py-5">
-        <nav className="mb-5 grid grid-cols-2 gap-2 rounded-md border border-[#d7dde5] bg-white p-1">
+        <nav className="mb-5 grid grid-cols-2 gap-2 rounded-md border border-[#3a3140] bg-[#17151f] p-1 shadow-[0_10px_30px_rgba(0,0,0,0.22)]">
           <TabButton active={view === "feed"} icon={<Gift size={17} />} label="Feed" onClick={() => setView("feed")} />
           <TabButton active={view === "profile"} icon={<User size={17} />} label="Profile" onClick={() => setView("profile")} />
         </nav>
@@ -611,19 +559,12 @@ export default function Home() {
             )}
             {view === "profile" && (
               <ProfileView
-                backendHealth={backendHealth}
-                backendStats={backendStats}
-                isScrapingNow={isScrapingNow}
-                onRefreshOperations={loadOperationsData}
-                onRunScrape={runScrapeNow}
                 onManageBilling={openBillingPortal}
                 onUpgrade={startCheckout}
                 onChangeEmail={() => showProfileMessage("Email changes will be available after production email is configured.")}
                 onEditPreferences={() => showProfileMessage("Notification preferences are saved locally for this test build.")}
-                operationsMessage={operationsMessage}
                 profile={profile}
                 profileMessage={profileMessage}
-                scrapeResult={scrapeResult}
                 user={user}
               />
             )}
@@ -847,7 +788,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={`flex items-center justify-center gap-2 rounded px-3 py-2 text-sm font-semibold ${
-        active ? "bg-[#17202a] text-white" : "text-[#536171] hover:bg-[#eef2f6]"
+        active ? "bg-[#d4af37] text-[#141019]" : "text-[#c9b99a] hover:bg-[#211a27] hover:text-[#f8f3e7]"
       }`}
     >
       {icon}
@@ -870,40 +811,40 @@ function AuthView({
   onTestLogin?: () => void;
 }) {
   return (
-    <main className="grid min-h-screen place-items-center bg-[#f6f7f9] px-4 text-[#17202a]">
-      <section className="w-full max-w-md rounded-md border border-[#d7dde5] bg-white p-6">
+    <main className="grid min-h-screen place-items-center bg-[#0f1117] px-4 text-[#f8f3e7]">
+      <section className="w-full max-w-md rounded-md border border-[#3a3140] bg-[#17151f] p-6 shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
         <div className="mb-5 flex items-center gap-3">
-          <div className="grid size-11 place-items-center rounded-md bg-[#0f766e] text-white">
+          <div className="grid size-11 place-items-center rounded-md bg-[#d4af37] text-[#141019]">
             <Gift size={23} />
           </div>
           <div>
             <h1 className="text-2xl font-bold">SocialWinia</h1>
-            <p className="text-sm text-[#627083]">All Giveaways. One App.</p>
+            <p className="text-sm text-[#c9b99a]">All Giveaways. One App.</p>
           </div>
         </div>
 
-        <div className="mb-5 rounded-md border border-[#d7dde5] bg-[#f8fafc] p-4">
+        <div className="mb-5 rounded-md border border-[#5a4930] bg-[#1b1720] p-4">
           <p className="font-bold">Start your 4-hour full access trial</p>
-          <p className="mt-1 text-sm text-[#627083]">
+          <p className="mt-1 text-sm text-[#c9b99a]">
             Enter only your email. No password, name, phone number or extra personal data.
           </p>
         </div>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-bold text-[#3b4654]">Email address</span>
+          <span className="mb-2 block text-sm font-bold text-[#f8f3e7]">Email address</span>
           <input
             type="email"
             value={email}
             onChange={(event) => onEmailChange(event.target.value)}
             placeholder="you@example.com"
-            className="w-full rounded-md border border-[#cad2dc] px-3 py-3"
+            className="w-full rounded-md border border-[#5a4930] bg-[#0f1117] px-3 py-3 text-[#f8f3e7] outline-none placeholder:text-[#81735f] focus:border-[#d4af37]"
           />
         </label>
 
         <button
           onClick={onSubmit}
           disabled={!email.includes("@")}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-[#17202a] px-4 py-3 font-semibold text-white hover:bg-[#2a3746] disabled:cursor-not-allowed disabled:bg-[#9aa5b1]"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-[#d4af37] px-4 py-3 font-semibold text-[#141019] hover:bg-[#e4c85d] disabled:cursor-not-allowed disabled:bg-[#5a4930] disabled:text-[#a99b80]"
         >
           <Mail size={18} />
           Send magic link
@@ -912,14 +853,14 @@ function AuthView({
         {onTestLogin && (
           <button
             onClick={onTestLogin}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-[#cad2dc] bg-white px-4 py-3 font-semibold text-[#17202a] hover:bg-[#eef2f6]"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-[#5a4930] bg-[#1b1720] px-4 py-3 font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
           >
             Continue as test user
           </button>
         )}
 
         {authMessage && (
-          <p className="mt-3 rounded-md bg-[#e6f4f1] px-3 py-2 text-sm font-semibold text-[#0f766e]">
+          <p className="mt-3 rounded-md border border-[#2f6b5f] bg-[#102d2b] px-3 py-2 text-sm font-semibold text-[#70d6bf]">
             {authMessage}
           </p>
         )}
@@ -963,7 +904,7 @@ function FeedView({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">Giveaway Feed</h2>
-            <p className="text-sm text-[#627083]">
+            <p className="text-sm text-[#c9b99a]">
               {count} matching giveaways found · {dataSource === "live" ? "Live data" : "Demo data"}
             </p>
           </div>
@@ -971,7 +912,7 @@ function FeedView({
             <button
               onClick={onRunScrape}
               disabled={isScrapingNow}
-              className="flex items-center gap-2 rounded-md border border-[#cad2dc] bg-white px-3 py-2 text-sm font-semibold text-[#17202a] hover:bg-[#eef2f6] disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex items-center gap-2 rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <RefreshCw className={isScrapingNow ? "animate-spin" : ""} size={16} />
               {isScrapingNow ? "Refreshing..." : "Refresh"}
@@ -987,7 +928,7 @@ function FeedView({
         </div>
 
         {operationsMessage && (
-          <div className="rounded-md border border-[#d7dde5] bg-[#f8fafc] px-4 py-3 text-sm font-semibold text-[#536171]">
+          <div className="rounded-md border border-[#5a4930] bg-[#1b1720] px-4 py-3 text-sm font-semibold text-[#c9b99a]">
             {operationsMessage}
           </div>
         )}
@@ -1002,15 +943,15 @@ function FeedView({
         )}
 
         {dataSource === "demo" && (
-          <div className="rounded-md border border-[#d7dde5] bg-[#f8fafc] px-4 py-3 text-sm font-semibold text-[#536171]">
+          <div className="rounded-md border border-[#5a4930] bg-[#1b1720] px-4 py-3 text-sm font-semibold text-[#c9b99a]">
             Demo giveaways use example discovery links. Live scraped giveaways open the exact original post.
           </div>
         )}
 
         <div className="space-y-3">
           {giveaways.length === 0 && (
-            <div className="rounded-md border border-[#d7dde5] bg-white p-5 text-sm text-[#627083]">
-              <h3 className="text-lg font-bold text-[#111820]">No exact giveaway links yet</h3>
+            <div className="rounded-md border border-[#3a3140] bg-[#17151f] p-5 text-sm text-[#c9b99a]">
+              <h3 className="text-lg font-bold text-[#f8f3e7]">No exact giveaway links yet</h3>
               <p className="mt-2">
                 SocialWinia only shows direct giveaway posts here. Overview pages, hashtag pages, and platform search
                 pages are hidden so the Enter button always points to a real giveaway.
@@ -1024,8 +965,8 @@ function FeedView({
               key={giveaway.id}
               className={`rounded-md border p-4 ${
                 giveaway.visited
-                  ? "border-[#cfd5dd] bg-[#eef1f4] text-[#66717f]"
-                  : "border-[#d7dde5] bg-white"
+                  ? "border-[#403846] bg-[#1a1b22] text-[#8f8790]"
+                  : "border-[#3a3140] bg-[#17151f] shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
               }`}
             >
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -1034,8 +975,8 @@ function FeedView({
                     <span
                       className={`rounded px-2 py-1 text-xs font-bold ${
                         giveaway.visited
-                          ? "bg-[#d8dde4] text-[#66717f]"
-                          : "bg-[#e6f4f1] text-[#0f766e]"
+                          ? "bg-[#2b2d36] text-[#9aa5b1]"
+                          : "bg-[#123a32] text-[#8de0be]"
                       }`}
                     >
                       {giveaway.platform}
@@ -1043,34 +984,34 @@ function FeedView({
                     <span
                       className={`rounded px-2 py-1 text-xs font-bold ${
                         giveaway.visited
-                          ? "bg-[#d8dde4] text-[#66717f]"
-                          : "bg-[#fff3d7] text-[#7a5200]"
+                          ? "bg-[#2b2d36] text-[#9aa5b1]"
+                          : "bg-[#3b2f16] text-[#f4d06f]"
                       }`}
                     >
                       CHF {giveaway.value.toLocaleString("en-US")}
                     </span>
                     {giveaway.visited && (
-                      <span className="flex items-center gap-1 rounded bg-[#dbeafe] px-2 py-1 text-xs font-bold text-[#1d4ed8]">
+                      <span className="flex items-center gap-1 rounded bg-[#1d2f4d] px-2 py-1 text-xs font-bold text-[#93c5fd]">
                         <CheckCircle2 size={13} />
                         Visited
                       </span>
                     )}
                     {giveaway.processingMethod === "heuristic_fallback" && (
-                      <span className="rounded bg-[#fff1f1] px-2 py-1 text-xs font-bold text-[#b42318]">
+                      <span className="rounded bg-[#3f1d1d] px-2 py-1 text-xs font-bold text-[#fca5a5]">
                         AI fallback
                       </span>
                     )}
                   </div>
-                  <h3 className={`truncate text-lg font-bold ${giveaway.visited ? "text-[#5b6674]" : ""}`}>
+                  <h3 className={`truncate text-lg font-bold ${giveaway.visited ? "text-[#8f8790]" : "text-[#f8f3e7]"}`}>
                     {giveaway.title}
                   </h3>
-                  <p className={`mt-1 text-sm ${giveaway.visited ? "text-[#7a8491]" : "text-[#627083]"}`}>
+                  <p className={`mt-1 text-sm ${giveaway.visited ? "text-[#8f8790]" : "text-[#c9b99a]"}`}>
                     {giveaway.organizer} · ends {giveaway.ends} · {giveaway.participants} participants
                   </p>
                 </div>
                 <button
                   onClick={() => onEnter(giveaway)}
-                  className="flex shrink-0 items-center justify-center gap-2 rounded-md bg-[#17202a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2a3746]"
+                  className="flex shrink-0 items-center justify-center gap-2 rounded-md bg-[#d4af37] px-4 py-2 text-sm font-semibold text-[#141019] hover:bg-[#f0c85a]"
                 >
                   Enter
                   <ExternalLink size={16} />
@@ -1125,9 +1066,9 @@ function FilterView({
   };
 
   return (
-    <section className="rounded-md border border-[#d7dde5] bg-white p-4">
+    <section className="rounded-md border border-[#3a3140] bg-[#17151f] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
       <div className="mb-5 flex items-center gap-2">
-        <Search size={20} />
+        <Search className="text-[#d4af37]" size={20} />
         <h2 className="text-2xl font-bold">Filters</h2>
       </div>
 
@@ -1172,7 +1113,7 @@ function FilterView({
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-[#627083]">Minimum CHF</span>
+                <span className="mb-1 block text-xs font-semibold text-[#c9b99a]">Minimum CHF</span>
                 <input
                   type="number"
                   min={0}
@@ -1180,11 +1121,11 @@ function FilterView({
                   step={50}
                   value={filter.minValue}
                   onChange={(event) => updateMinValue(Number(event.target.value))}
-                  className="w-full rounded-md border border-[#cad2dc] px-3 py-2"
+                  className="w-full rounded-md border border-[#5a4930] bg-[#0f1117] px-3 py-2 text-[#f8f3e7] outline-none focus:border-[#d4af37]"
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-[#627083]">Maximum CHF</span>
+                <span className="mb-1 block text-xs font-semibold text-[#c9b99a]">Maximum CHF</span>
                 <input
                   type="text"
                   min={0}
@@ -1193,7 +1134,7 @@ function FilterView({
                   inputMode="numeric"
                   value={filter.maxValue >= 10000 ? "10000+" : filter.maxValue}
                   onChange={(event) => updateMaxValueFromInput(event.target.value)}
-                  className="w-full rounded-md border border-[#cad2dc] px-3 py-2"
+                  className="w-full rounded-md border border-[#5a4930] bg-[#0f1117] px-3 py-2 text-[#f8f3e7] outline-none focus:border-[#d4af37]"
                 />
               </label>
             </div>
@@ -1218,7 +1159,9 @@ function FilterView({
                   setFilter((current) => ({ ...current, status: value as Status }))
                 }
                 className={`rounded-md border px-3 py-2 text-sm font-semibold ${
-                  filter.status === value ? "border-[#17202a] bg-[#17202a] text-white" : "border-[#cad2dc] hover:bg-[#eef2f6]"
+                  filter.status === value
+                    ? "border-[#d4af37] bg-[#d4af37] text-[#141019]"
+                    : "border-[#5a4930] bg-[#1b1720] text-[#f8f3e7] hover:bg-[#261d26]"
                 }`}
               >
                 {label}
@@ -1227,16 +1170,16 @@ function FilterView({
           </div>
         </Field>
       </div>
-      <div className="mt-5 flex flex-col gap-2 border-t border-[#d7dde5] pt-4 sm:flex-row sm:justify-end">
+      <div className="mt-5 flex flex-col gap-2 border-t border-[#3a3140] pt-4 sm:flex-row sm:justify-end">
         <button
           onClick={onReset}
-          className="rounded-md border border-[#cad2dc] px-4 py-2 text-sm font-semibold hover:bg-[#eef2f6]"
+          className="rounded-md border border-[#5a4930] bg-[#1b1720] px-4 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
         >
           Reset
         </button>
         <button
           onClick={onApply}
-          className="rounded-md bg-[#17202a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2a3746]"
+          className="rounded-md bg-[#d4af37] px-4 py-2 text-sm font-semibold text-[#141019] hover:bg-[#e4c85d]"
         >
           Apply filters
         </button>
@@ -1261,14 +1204,14 @@ function DualRangeSlider({
 
   return (
     <div>
-      <div className="mb-2 flex justify-between text-xs font-semibold text-[#627083]">
+      <div className="mb-2 flex justify-between text-xs font-semibold text-[#c9b99a]">
         <span>CHF {minValue.toLocaleString("en-US")}</span>
         <span>{maxValue >= 10000 ? "CHF 10,000+" : `CHF ${maxValue.toLocaleString("en-US")}`}</span>
       </div>
       <div className="relative h-8">
-        <div className="absolute left-0 right-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-[#d7dde5]" />
+        <div className="absolute left-0 right-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-[#3a3140]" />
         <div
-          className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[#0f766e]"
+          className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-[#d4af37]"
           style={{ left: `${minPercent}%`, right: `${100 - maxPercent}%` }}
         />
         <input
@@ -1316,8 +1259,8 @@ function MultiSelectGrid({
         onClick={() => onChange([])}
         className={`w-full rounded-md border px-3 py-2 text-left text-sm font-semibold ${
           selectedValues.length === 0
-            ? "border-[#17202a] bg-[#17202a] text-white"
-            : "border-[#cad2dc] hover:bg-[#eef2f6]"
+            ? "border-[#d4af37] bg-[#d4af37] text-[#141019]"
+            : "border-[#5a4930] bg-[#1b1720] text-[#f8f3e7] hover:bg-[#261d26]"
         }`}
       >
         {allLabel}
@@ -1333,8 +1276,8 @@ function MultiSelectGrid({
               onClick={() => onToggle(option)}
               className={`rounded-md border px-3 py-2 text-left text-sm font-semibold ${
                 selected
-                  ? "border-[#0f766e] bg-[#e6f4f1] text-[#0f766e]"
-                  : "border-[#cad2dc] hover:bg-[#eef2f6]"
+                  ? "border-[#d4af37] bg-[#2a2417] text-[#f2d06b]"
+                  : "border-[#5a4930] bg-[#1b1720] text-[#f8f3e7] hover:bg-[#261d26]"
               }`}
             >
               {option}
@@ -1349,50 +1292,36 @@ function MultiSelectGrid({
 function Field({ children, label }: { children: React.ReactNode; label: string }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-[#3b4654]">{label}</span>
+      <span className="mb-2 block text-sm font-bold text-[#f8f3e7]">{label}</span>
       {children}
     </label>
   );
 }
 
 function ProfileView({
-  backendHealth,
-  backendStats,
-  isScrapingNow,
-  onRefreshOperations,
-  onRunScrape,
   onManageBilling,
   onChangeEmail,
   onEditPreferences,
   onUpgrade,
-  operationsMessage,
   profile,
   profileMessage,
-  scrapeResult,
   user,
 }: {
-  backendHealth: BackendHealth | null;
-  backendStats: BackendStats | null;
-  isScrapingNow: boolean;
-  onRefreshOperations: () => void;
-  onRunScrape: () => void;
   onManageBilling: () => void;
   onChangeEmail: () => void;
   onEditPreferences: () => void;
   onUpgrade: () => void;
-  operationsMessage: string;
   profile: UserProfile | null;
   profileMessage: string;
-  scrapeResult: ScrapeRunResult | null;
   user: SupabaseUser;
 }) {
   return (
     <section className="grid gap-4 lg:grid-cols-2">
       <Panel icon={<Mail size={19} />} title="Account">
-        <p className="text-sm text-[#627083]">{profile?.email || user.email}</p>
+        <p className="text-sm text-[#c9b99a]">{profile?.email || user.email}</p>
         <button
           onClick={onChangeEmail}
-          className="mt-3 rounded-md border border-[#cad2dc] px-3 py-2 text-sm font-semibold hover:bg-[#eef2f6]"
+          className="mt-3 rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
         >
           Change email
         </button>
@@ -1400,155 +1329,58 @@ function ProfileView({
       <Panel icon={<Bell size={19} />} title="Notifications">
         <label className="flex items-center justify-between gap-3 text-sm">
           New giveaways
-          <input type="checkbox" defaultChecked className="size-5 accent-[#0f766e]" />
+          <input type="checkbox" defaultChecked className="size-5 accent-[#d4af37]" />
         </label>
         <button
           onClick={onEditPreferences}
-          className="mt-3 rounded-md border border-[#cad2dc] px-3 py-2 text-sm font-semibold hover:bg-[#eef2f6]"
+          className="mt-3 rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
         >
           Edit preferences
         </button>
         {profileMessage && (
-          <p className="mt-3 rounded-md bg-[#e6f4f1] px-3 py-2 text-sm font-semibold text-[#0f766e]">
+          <p className="mt-3 rounded-md bg-[#123a32] px-3 py-2 text-sm font-semibold text-[#8de0be]">
             {profileMessage}
           </p>
         )}
       </Panel>
       <Panel icon={<Gift size={19} />} title="Referral Program">
-        <p className="text-sm text-[#627083]">Refer a friend: get +1 Premium day for every successful referral.</p>
+        <p className="text-sm text-[#c9b99a]">Refer a friend: get 50% off one month for every successful referral.</p>
       </Panel>
       <Panel icon={<Settings size={19} />} title="Subscription">
-        <p className="text-sm text-[#627083]">
+        <p className="text-sm text-[#c9b99a]">
           Status: {profile?.subscription_status === "active" ? "Premium active" : "Trial active"}
           {profile?.trial_ends_at ? ` · Trial ends ${formatDate(profile.trial_ends_at)}` : ""}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <button
             onClick={onUpgrade}
-            className="rounded-md bg-[#0f766e] px-3 py-2 text-sm font-semibold text-white hover:bg-[#115e59]"
+            className="rounded-md bg-[#d4af37] px-3 py-2 text-sm font-semibold text-[#141019] hover:bg-[#f0c85a]"
           >
             Upgrade
           </button>
           <button
             onClick={onManageBilling}
-            className="rounded-md border border-[#cad2dc] px-3 py-2 text-sm font-semibold hover:bg-[#eef2f6]"
+            className="rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
           >
             Payment method
           </button>
           <button
             onClick={onManageBilling}
-            className="rounded-md border border-[#cad2dc] px-3 py-2 text-sm font-semibold hover:bg-[#eef2f6]"
+            className="rounded-md border border-[#5a4930] bg-[#1b1720] px-3 py-2 text-sm font-semibold text-[#f8f3e7] hover:bg-[#261d26]"
           >
             Cancel subscription
           </button>
         </div>
       </Panel>
-      <Panel icon={<Server size={19} />} title="Service Status">
-        <div className="grid gap-2 sm:grid-cols-2">
-          <StatusPill label="Supabase" ok={backendHealth?.services.supabase} />
-          <StatusPill label="OpenAI" ok={backendHealth?.services.openai} />
-          <StatusPill label="ScrapingBee" ok={backendHealth?.services.scrapingbee} />
-          <StatusPill label="Stripe" ok={backendHealth?.services.stripe} />
-        </div>
-        <button
-          onClick={onRefreshOperations}
-          className="mt-3 flex items-center gap-2 rounded-md border border-[#cad2dc] px-3 py-2 text-sm font-semibold hover:bg-[#eef2f6]"
-        >
-          <RefreshCw size={16} />
-          Refresh status
-        </button>
-      </Panel>
-      <Panel icon={<Database size={19} />} title="Giveaway Data">
-        <div className="grid grid-cols-2 gap-3">
-          <Metric label="Total giveaways" value={backendStats?.totalGiveaways ?? 0} />
-          <Metric label="New today" value={backendStats?.todayGiveaways ?? 0} />
-        </div>
-        <p className="mt-3 text-sm text-[#627083]">
-          Last scrape: {backendStats?.lastScrapedAt ? formatDateTime(backendStats.lastScrapedAt) : "Not available"}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {(backendStats?.platformCounts ?? []).slice(0, 6).map((item) => (
-            <span key={item.platform} className="rounded bg-[#eef2f6] px-2 py-1 text-xs font-bold text-[#536171]">
-              {formatPlatform(item.platform)} · {item.count}
-            </span>
-          ))}
-        </div>
-      </Panel>
-      <Panel icon={<Activity size={19} />} title="Scraping Control">
-        <p className="text-sm text-[#627083]">
-          Start a manual scrape after Supabase, OpenAI and ScrapingBee are configured.
-        </p>
-        <button
-          onClick={onRunScrape}
-          disabled={isScrapingNow}
-          className="mt-3 flex items-center gap-2 rounded-md bg-[#17202a] px-3 py-2 text-sm font-semibold text-white hover:bg-[#2a3746] disabled:cursor-not-allowed disabled:bg-[#9aa5b1]"
-        >
-          <RefreshCw size={16} />
-          {isScrapingNow ? "Scraping..." : "Run scrape now"}
-        </button>
-        {operationsMessage && (
-          <p className="mt-3 rounded-md bg-[#f8fafc] px-3 py-2 text-sm font-semibold text-[#536171]">
-            {operationsMessage}
-          </p>
-        )}
-        {scrapeResult && (
-          <>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-              <Metric label="Raw posts" value={scrapeResult.rawCount} />
-              <Metric label="Saved" value={scrapeResult.savedCount} />
-              <Metric label="Processed" value={scrapeResult.processedCount} />
-              <Metric label="Skipped" value={scrapeResult.skippedCount} />
-              <Metric label="AI fallback" value={scrapeResult.fallbackCount} />
-            </div>
-            {scrapeResult.errors.length > 0 && (
-              <div className="mt-3 rounded-md border border-[#f3d2a7] bg-[#fff8ed] p-3 text-xs text-[#8a4b10]">
-                <p className="font-bold">Latest scrape notes</p>
-                <ul className="mt-2 space-y-1">
-                  {scrapeResult.errors.slice(0, 4).map((error) => (
-                    <li key={error}>{error}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </>
-        )}
-      </Panel>
     </section>
-  );
-}
-
-function StatusPill({ label, ok }: { label: string; ok?: boolean }) {
-  const unknown = typeof ok === "undefined";
-
-  return (
-    <div
-      className={`rounded-md border px-3 py-2 text-sm font-semibold ${
-        unknown
-          ? "border-[#cad2dc] bg-[#f8fafc] text-[#627083]"
-          : ok
-            ? "border-[#b7e4d8] bg-[#e6f4f1] text-[#0f766e]"
-            : "border-[#f1c9c9] bg-[#fff1f1] text-[#b42318]"
-      }`}
-    >
-      {label}: {unknown ? "Unknown" : ok ? "Connected" : "Missing"}
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-md border border-[#d7dde5] bg-[#f8fafc] p-3">
-      <p className="text-xs font-bold uppercase text-[#627083]">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{value.toLocaleString("en-US")}</p>
-    </div>
   );
 }
 
 function Panel({ children, icon, title }: { children: React.ReactNode; icon: React.ReactNode; title: string }) {
   return (
-    <div className="rounded-md border border-[#d7dde5] bg-white p-4">
+    <div className="rounded-md border border-[#3a3140] bg-[#17151f] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
       <div className="mb-3 flex items-center gap-2">
-        {icon}
+        <span className="text-[#d4af37]">{icon}</span>
         <h2 className="text-lg font-bold">{title}</h2>
       </div>
       {children}
@@ -1558,16 +1390,16 @@ function Panel({ children, icon, title }: { children: React.ReactNode; icon: Rea
 
 function PremiumLock({ onUpgrade }: { onUpgrade: () => void }) {
   return (
-    <section className="mx-auto max-w-md rounded-md border border-[#d7dde5] bg-white p-6 text-center">
-      <div className="mx-auto mb-4 grid size-12 place-items-center rounded-md bg-[#17202a] text-white">
+    <section className="mx-auto max-w-md rounded-md border border-[#3a3140] bg-[#17151f] p-6 text-center shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
+      <div className="mx-auto mb-4 grid size-12 place-items-center rounded-md bg-[#d4af37] text-[#141019]">
         <Lock size={24} />
       </div>
       <h2 className="text-2xl font-bold">Premium Required</h2>
-      <p className="mt-3 text-sm text-[#627083]">Available today:</p>
+      <p className="mt-3 text-sm text-[#c9b99a]">Available today:</p>
       <p className="mt-1 text-3xl font-bold">547 new giveaways</p>
       <button
         onClick={onUpgrade}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-[#0f766e] px-4 py-3 font-semibold text-white hover:bg-[#115e59]"
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-[#d4af37] px-4 py-3 font-semibold text-[#141019] hover:bg-[#e4c85d]"
       >
         <CreditCard size={18} />
         Upgrade to Premium · $4.99 / month
