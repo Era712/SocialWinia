@@ -204,6 +204,7 @@ export default function Home() {
   const [isScrapingNow, setIsScrapingNow] = useState(false);
   const [scrapeResult, setScrapeResult] = useState<ScrapeRunResult | null>(null);
   const [operationsMessage, setOperationsMessage] = useState("");
+  const [feedRefreshToken, setFeedRefreshToken] = useState(0);
   const [profileMessage, setProfileMessage] = useState("");
   const [appliedFilters, setAppliedFilters] = useState<FilterState>({
     maxValue: 10000,
@@ -304,7 +305,7 @@ export default function Home() {
     return () => {
       mounted = false;
     };
-  }, [user]);
+  }, [user, feedRefreshToken]);
 
   useEffect(() => {
     if (!profile) {
@@ -478,6 +479,7 @@ export default function Home() {
       setScrapeResult(payload.data);
       setOperationsMessage("Scrape run finished.");
       await loadOperationsData();
+      setFeedRefreshToken((value) => value + 1);
     } catch (error) {
       setOperationsMessage("Scrape run could not be started.");
       console.warn("Could not run scrape.", error);
@@ -574,8 +576,11 @@ export default function Home() {
                 draftFilters={draftFilters}
                 filtersOpen={filtersOpen}
                 giveaways={filteredGiveaways}
+                isScrapingNow={isScrapingNow}
                 onEnter={handleEnter}
+                onRunScrape={runScrapeNow}
                 onUpgrade={startCheckout}
+                operationsMessage={operationsMessage}
                 onApplyFilters={() => {
                   setAppliedFilters(draftFilters);
                   setFiltersOpen(false);
@@ -920,8 +925,11 @@ function FeedView({
   draftFilters,
   filtersOpen,
   giveaways,
+  isScrapingNow,
   onEnter,
+  onRunScrape,
   onUpgrade,
+  operationsMessage,
   onApplyFilters,
   onResetFilters,
   setDraftFilters,
@@ -932,8 +940,11 @@ function FeedView({
   draftFilters: FilterState;
   filtersOpen: boolean;
   giveaways: Giveaway[];
+  isScrapingNow: boolean;
   onEnter: (giveaway: Giveaway) => void;
+  onRunScrape: () => void;
   onUpgrade: () => void;
+  operationsMessage: string;
   onApplyFilters: () => void;
   onResetFilters: () => void;
   setDraftFilters: (updater: FilterState | ((value: FilterState) => FilterState)) => void;
@@ -949,14 +960,30 @@ function FeedView({
               {count} matching giveaways found · {dataSource === "live" ? "Live data" : "Demo data"}
             </p>
           </div>
-          <button
-            onClick={() => setFiltersOpen((open) => !open)}
-            className="flex items-center gap-2 rounded-md bg-[#0f766e] px-3 py-2 text-sm font-semibold text-white hover:bg-[#115e59]"
-          >
-            <Filter size={16} />
-            {filtersOpen ? "Hide filters" : "Filters"}
-          </button>
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              onClick={onRunScrape}
+              disabled={isScrapingNow}
+              className="flex items-center gap-2 rounded-md border border-[#cad2dc] bg-white px-3 py-2 text-sm font-semibold text-[#17202a] hover:bg-[#eef2f6] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshCw className={isScrapingNow ? "animate-spin" : ""} size={16} />
+              {isScrapingNow ? "Aktualisiere..." : "Aktualisieren"}
+            </button>
+            <button
+              onClick={() => setFiltersOpen((open) => !open)}
+              className="flex items-center gap-2 rounded-md bg-[#0f766e] px-3 py-2 text-sm font-semibold text-white hover:bg-[#115e59]"
+            >
+              <Filter size={16} />
+              {filtersOpen ? "Hide filters" : "Filters"}
+            </button>
+          </div>
         </div>
+
+        {operationsMessage && (
+          <div className="rounded-md border border-[#d7dde5] bg-[#f8fafc] px-4 py-3 text-sm font-semibold text-[#536171]">
+            {operationsMessage}
+          </div>
+        )}
 
         {filtersOpen && (
           <FilterView
@@ -981,7 +1008,7 @@ function FeedView({
                 SocialWinia only shows direct giveaway posts here. Overview pages, hashtag pages, and platform search
                 pages are hidden so the Enter button always points to a real giveaway.
               </p>
-              <p className="mt-2">Run a fresh scrape from Profile to search for new direct giveaway links.</p>
+              <p className="mt-2">Click Aktualisieren to search for new direct giveaway links.</p>
             </div>
           )}
 
