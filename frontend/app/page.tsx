@@ -3,15 +3,23 @@
 import {
   CheckCircle2,
   Clock,
+  Coins,
   CreditCard,
+  Crown,
   ExternalLink,
   Filter,
+  Flame,
+  Gem,
   Gift,
   Lock,
   Mail,
+  Monitor,
   RefreshCw,
   Search,
   Settings,
+  Sparkles,
+  Smartphone,
+  Trophy,
   User,
 } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -499,6 +507,15 @@ export default function Home() {
           alt=""
           className="absolute left-1/2 top-28 w-[880px] max-w-none -translate-x-1/2 opacity-[0.13] saturate-125"
         />
+        <Crown className="absolute left-[46%] top-24 rotate-[-8deg] text-[#ffd23f] opacity-25" size={54} strokeWidth={1.7} />
+        <Sparkles className="absolute right-[16%] top-28 rotate-12 text-[#fff8e7] opacity-18" size={48} strokeWidth={1.6} />
+        <Coins className="absolute left-[8%] top-40 rotate-[-14deg] text-[#ffd23f] opacity-18" size={44} strokeWidth={1.6} />
+        <Monitor className="absolute right-[8%] top-48 rotate-6 text-[#4bc7ff] opacity-16" size={50} strokeWidth={1.5} />
+        <Flame className="absolute left-[11%] top-[47%] rotate-[-10deg] text-[#ff8ac4] opacity-18" size={48} strokeWidth={1.7} />
+        <Gem className="absolute left-[29%] top-[54%] rotate-12 text-[#4bc7ff] opacity-18" size={42} strokeWidth={1.6} />
+        <Gift className="absolute right-[20%] top-[49%] rotate-[-8deg] text-[#ff8ac4] opacity-20" size={46} strokeWidth={1.6} />
+        <Trophy className="absolute right-[14%] top-[66%] rotate-6 text-[#ffd23f] opacity-20" size={50} strokeWidth={1.5} />
+        <Smartphone className="absolute left-[5%] top-[70%] rotate-[-7deg] text-[#4bc7ff] opacity-16" size={46} strokeWidth={1.6} />
       </div>
       <header className="relative z-10 border-b border-[#1f6f58] bg-[#0b1117]/95 shadow-[0_12px_40px_rgba(0,0,0,0.38)] backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
@@ -523,7 +540,7 @@ export default function Home() {
                     {isPremium ? "Premium active" : isLocked ? "Premium required" : `Trial access: ${formatDuration(secondsRemaining)}`}
                   </span>
                   {!isPremium && !isLocked && (
-                    <span className="mt-1 text-xs font-bold text-[#ff8ac4]">Limited Offer: first month for $2.99</span>
+                    <span className="mt-1 text-xs font-bold text-[#ff8ac4]">Limited Offer: first month for $2.99 if you upgrade within 1 hour</span>
                   )}
                 </span>
               </button>
