@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Bell,
   CheckCircle2,
   Clock,
   CreditCard,
@@ -188,6 +187,7 @@ export default function Home() {
   const [operationsMessage, setOperationsMessage] = useState("");
   const [feedRefreshToken, setFeedRefreshToken] = useState(0);
   const [profileMessage, setProfileMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [appliedFilters, setAppliedFilters] = useState<FilterState>({
     maxValue: 10000,
     minValue: 0,
@@ -426,7 +426,7 @@ export default function Home() {
         return;
       }
 
-      setOperationsMessage("Scrape run finished.");
+      setOperationsMessage("");
       setFeedRefreshToken((value) => value + 1);
     } catch (error) {
       setOperationsMessage("Scrape run could not be started.");
@@ -437,7 +437,18 @@ export default function Home() {
   }
 
   const filteredGiveaways = useMemo(() => {
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+
     return giveawayItems.filter((giveaway) => {
+      const searchableText = [
+        giveaway.title,
+        giveaway.organizer,
+        giveaway.platform,
+        giveaway.category,
+        giveaway.ends,
+      ]
+        .join(" ")
+        .toLowerCase();
       const matchesPlatform =
         appliedFilters.selectedPlatforms.length === 0 ||
         appliedFilters.selectedPlatforms.includes(giveaway.platform);
@@ -451,10 +462,11 @@ export default function Home() {
         appliedFilters.status === "all" ||
         (appliedFilters.status === "new" && !giveaway.visited) ||
         (appliedFilters.status === "visited" && giveaway.visited);
+      const matchesSearch = !normalizedSearch || searchableText.includes(normalizedSearch);
 
-      return matchesPlatform && matchesCategory && matchesValue && matchesStatus;
+      return matchesPlatform && matchesCategory && matchesValue && matchesStatus && matchesSearch;
     });
-  }, [appliedFilters, giveawayItems]);
+  }, [appliedFilters, giveawayItems, searchQuery]);
 
   if (authLoading) {
     return (
@@ -480,8 +492,15 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_50%_0%,rgba(255,210,63,0.12),transparent_28%),radial-gradient(circle_at_15%_18%,rgba(32,184,255,0.14),transparent_24%),linear-gradient(180deg,#0b2f25_0%,#071713_100%)] text-[#fff8e7]">
-      <header className="border-b border-[#1f6f58] bg-[#0b1117] shadow-[0_12px_40px_rgba(0,0,0,0.38)]">
+    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(255,210,63,0.12),transparent_28%),radial-gradient(circle_at_15%_18%,rgba(32,184,255,0.14),transparent_24%),linear-gradient(180deg,#0b2f25_0%,#071713_100%)] text-[#fff8e7]">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <img
+          src="/socialwinia-logo.png"
+          alt=""
+          className="absolute left-1/2 top-28 w-[880px] max-w-none -translate-x-1/2 opacity-[0.08] grayscale brightness-200 contrast-150"
+        />
+      </div>
+      <header className="relative z-10 border-b border-[#1f6f58] bg-[#0b1117]/95 shadow-[0_12px_40px_rgba(0,0,0,0.38)] backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
             <img
@@ -493,12 +512,21 @@ export default function Home() {
               <p className="text-sm text-[#cbe7d6]">All Giveaways. One App.</p>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2">
-              <div className="hidden items-center gap-2 rounded-md border border-[#2c6f58] bg-[#102f27] px-3 py-2 text-sm font-semibold text-[#fff8e7] sm:flex">
+          <div className="flex items-center gap-2">
+              <button
+                onClick={!isPremium && !isLocked ? startCheckout : undefined}
+                className="flex max-w-[220px] items-start gap-2 rounded-md border border-[#2c6f58] bg-[#102f27] px-3 py-2 text-left text-xs font-semibold text-[#fff8e7] hover:bg-[#174638] sm:max-w-none sm:text-sm"
+              >
                 {isLocked ? <Lock size={16} /> : <Clock size={16} />}
-                {isPremium ? "Premium active" : isLocked ? "Premium required" : `Trial access: ${formatDuration(secondsRemaining)}`}
-              </div>
+                <span className="flex flex-col leading-tight">
+                  <span>
+                    {isPremium ? "Premium active" : isLocked ? "Premium required" : `Trial access: ${formatDuration(secondsRemaining)}`}
+                  </span>
+                  {!isPremium && !isLocked && (
+                    <span className="mt-1 text-xs font-bold text-[#ff8ac4]">Limited Offer: first month for $2.99</span>
+                  )}
+                </span>
+              </button>
               <button
                 onClick={signOut}
                 className="rounded-md border border-[#2c6f58] bg-[#102f27] px-3 py-2 text-sm font-semibold text-[#fff8e7] hover:bg-[#174638]"
@@ -506,19 +534,10 @@ export default function Home() {
                 Sign out
               </button>
             </div>
-            {!isPremium && !isLocked && (
-              <button
-                onClick={startCheckout}
-                className="hidden rounded-md bg-[#ff2f8f] px-3 py-2 text-xs font-bold text-[#fff8e7] shadow-[0_0_24px_rgba(255,47,143,0.25)] hover:bg-[#ff5aa8] sm:block"
-              >
-                Limited Offer: first month for $2.99
-              </button>
-            )}
-          </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-6xl px-4 py-5">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 py-5">
         <nav className="mb-5 grid grid-cols-2 gap-2 rounded-md border border-[#1f6f58] bg-[#12372d] p-1 shadow-[0_10px_30px_rgba(0,0,0,0.28)]">
           <TabButton active={view === "feed"} icon={<Gift size={17} />} label="Feed" onClick={() => setView("feed")} />
           <TabButton active={view === "profile"} icon={<User size={17} />} label="Profile" onClick={() => setView("profile")} />
@@ -539,6 +558,7 @@ export default function Home() {
                 onEnter={handleEnter}
                 onRunScrape={runScrapeNow}
                 operationsMessage={operationsMessage}
+                searchQuery={searchQuery}
                 onApplyFilters={() => {
                   setAppliedFilters(draftFilters);
                   setFiltersOpen(false);
@@ -554,6 +574,7 @@ export default function Home() {
                   setDraftFilters(resetFilters);
                   setAppliedFilters(resetFilters);
                 }}
+                setSearchQuery={setSearchQuery}
                 setDraftFilters={setDraftFilters}
                 setFiltersOpen={setFiltersOpen}
               />
@@ -563,7 +584,6 @@ export default function Home() {
                 onManageBilling={openBillingPortal}
                 onUpgrade={startCheckout}
                 onChangeEmail={() => showProfileMessage("Email changes will be available after production email is configured.")}
-                onEditPreferences={() => showProfileMessage("Notification preferences are saved locally for this test build.")}
                 profile={profile}
                 profileMessage={profileMessage}
                 user={user}
@@ -881,8 +901,10 @@ function FeedView({
   onEnter,
   onRunScrape,
   operationsMessage,
+  searchQuery,
   onApplyFilters,
   onResetFilters,
+  setSearchQuery,
   setDraftFilters,
   setFiltersOpen,
 }: {
@@ -895,8 +917,10 @@ function FeedView({
   onEnter: (giveaway: Giveaway) => void;
   onRunScrape: () => void;
   operationsMessage: string;
+  searchQuery: string;
   onApplyFilters: () => void;
   onResetFilters: () => void;
+  setSearchQuery: (value: string) => void;
   setDraftFilters: (updater: FilterState | ((value: FilterState) => FilterState)) => void;
   setFiltersOpen: (value: boolean | ((value: boolean) => boolean)) => void;
 }) {
@@ -927,6 +951,20 @@ function FeedView({
               {filtersOpen ? "Hide filters" : "Filters"}
             </button>
           </div>
+        </div>
+
+        <div className="relative">
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7fb59b]"
+            size={17}
+          />
+          <input
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search giveaways, organizers, platforms..."
+            className="w-full rounded-md border border-[#2c6f58] bg-[#071713] py-3 pl-10 pr-3 text-sm font-semibold text-[#fff8e7] outline-none placeholder:text-[#7fb59b] focus:border-[#ffd23f]"
+          />
         </div>
 
         {operationsMessage && (
@@ -1303,7 +1341,6 @@ function Field({ children, label }: { children: React.ReactNode; label: string }
 function ProfileView({
   onManageBilling,
   onChangeEmail,
-  onEditPreferences,
   onUpgrade,
   profile,
   profileMessage,
@@ -1311,7 +1348,6 @@ function ProfileView({
 }: {
   onManageBilling: () => void;
   onChangeEmail: () => void;
-  onEditPreferences: () => void;
   onUpgrade: () => void;
   profile: UserProfile | null;
   profileMessage: string;
@@ -1327,26 +1363,11 @@ function ProfileView({
         >
           Change email
         </button>
-      </Panel>
-      <Panel icon={<Bell size={19} />} title="Notifications">
-        <label className="flex items-center justify-between gap-3 text-sm">
-          New giveaways
-          <input type="checkbox" defaultChecked className="size-5 accent-[#ffd23f]" />
-        </label>
-        <button
-          onClick={onEditPreferences}
-          className="mt-3 rounded-md border border-[#2c6f58] bg-[#102f27] px-3 py-2 text-sm font-semibold text-[#fff8e7] hover:bg-[#174638]"
-        >
-          Edit preferences
-        </button>
         {profileMessage && (
           <p className="mt-3 rounded-md bg-[#104c3a] px-3 py-2 text-sm font-semibold text-[#7dffc7]">
             {profileMessage}
           </p>
         )}
-      </Panel>
-      <Panel icon={<Gift size={19} />} title="Referral Program">
-        <p className="text-sm text-[#cbe7d6]">Refer a friend: get 50% off one month for every successful referral.</p>
       </Panel>
       <Panel icon={<Settings size={19} />} title="Subscription">
         <p className="text-sm text-[#cbe7d6]">
