@@ -497,7 +497,7 @@ export default function Home() {
         <img
           src="/socialwinia-logo.png"
           alt=""
-          className="absolute left-1/2 top-28 w-[880px] max-w-none -translate-x-1/2 opacity-[0.08] grayscale brightness-200 contrast-150"
+          className="absolute left-1/2 top-28 w-[880px] max-w-none -translate-x-1/2 opacity-[0.13] saturate-125"
         />
       </div>
       <header className="relative z-10 border-b border-[#1f6f58] bg-[#0b1117]/95 shadow-[0_12px_40px_rgba(0,0,0,0.38)] backdrop-blur">
