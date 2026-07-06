@@ -33,9 +33,15 @@ const giveawaySubreddits = new Set([
   'freebies',
   'free',
   'steam_giveaway',
+  'steamgiveaway',
   'giftofgames',
+  'gamegiveaway',
+  'pcgiveaways',
+  'playitforward',
   'freegamesonsteam',
   'gamedealsfree',
+  'freegamestuff',
+  'freeebooks',
 ]);
 
 const redditSources: RedditSource[] = [
@@ -49,9 +55,15 @@ const redditSources: RedditSource[] = [
     'freebies',
     'FREE',
     'steam_giveaway',
+    'steamgiveaway',
     'GiftofGames',
+    'GameGiveaway',
+    'pcgiveaways',
+    'playitforward',
     'FreeGamesOnSteam',
     'GameDealsFree',
+    'FreeGameStuff',
+    'FreeEBOOKS',
   ].map((subreddit) => ({
     apiUrl: `https://api.reddit.com/r/${subreddit}/new?limit=100&raw_json=1`,
     label: `r/${subreddit}`,
@@ -89,6 +101,26 @@ const redditSources: RedditSource[] = [
     apiUrl: 'https://api.reddit.com/search?q=%22free%20game%22%20OR%20%22steam%20key%22%20OR%20%22gog%22&sort=new&t=week&limit=100&raw_json=1',
     label: 'reddit search game prizes',
     url: 'https://www.reddit.com/search.json?q=%22free%20game%22%20OR%20%22steam%20key%22%20OR%20%22gog%22&sort=new&t=week&limit=100&raw_json=1',
+  },
+  {
+    apiUrl: 'https://api.reddit.com/search?q=%23giveaway%20OR%20%23contest%20OR%20%23sweepstakes&sort=new&t=month&limit=100&raw_json=1',
+    label: 'reddit search hashtags',
+    url: 'https://www.reddit.com/search.json?q=%23giveaway%20OR%20%23contest%20OR%20%23sweepstakes&sort=new&t=month&limit=100&raw_json=1',
+  },
+  {
+    apiUrl: 'https://api.reddit.com/search?q=%23gewinnspiel%20OR%20%23verlosung%20OR%20%22folge%20und%20kommentiere%22&sort=new&t=month&limit=100&raw_json=1',
+    label: 'reddit search german hashtags',
+    url: 'https://www.reddit.com/search.json?q=%23gewinnspiel%20OR%20%23verlosung%20OR%20%22folge%20und%20kommentiere%22&sort=new&t=month&limit=100&raw_json=1',
+  },
+  {
+    apiUrl: 'https://api.reddit.com/search?q=%22comment%20to%20enter%22%20OR%20%22leave%20a%20comment%20to%20win%22%20OR%20%22ends%22%20%22giveaway%22&sort=new&t=month&limit=100&raw_json=1',
+    label: 'reddit search entry phrases',
+    url: 'https://www.reddit.com/search.json?q=%22comment%20to%20enter%22%20OR%20%22leave%20a%20comment%20to%20win%22%20OR%20%22ends%22%20%22giveaway%22&sort=new&t=month&limit=100&raw_json=1',
+  },
+  {
+    apiUrl: 'https://api.reddit.com/search?q=%22amazon%20gift%20card%22%20%22giveaway%22%20OR%20%22paypal%22%20%22giveaway%22%20OR%20%22voucher%22%20%22giveaway%22&sort=new&t=month&limit=100&raw_json=1',
+    label: 'reddit search gift prizes',
+    url: 'https://www.reddit.com/search.json?q=%22amazon%20gift%20card%22%20%22giveaway%22%20OR%20%22paypal%22%20%22giveaway%22%20OR%20%22voucher%22%20%22giveaway%22&sort=new&t=month&limit=100&raw_json=1',
   },
 ];
 

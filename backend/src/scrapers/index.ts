@@ -72,6 +72,10 @@ export async function scrapeAllPlatforms(): Promise<RawPost[]> {
     `Active scrapers: ${activeScrapers.map((scraper) => scraper.name).join(', ') || 'none'}`,
   ];
 
+  if (maxRawPosts > 0) {
+    messages.push(`SCRAPER_MAX_RAW_POSTS is set to ${maxRawPosts}. Increase or clear it to collect more raw posts.`);
+  }
+
   if (invalidPlatforms.length > 0) {
     messages.push(`Invalid SCRAPER_PLATFORMS ignored: ${invalidPlatforms.join(', ')}`);
   }

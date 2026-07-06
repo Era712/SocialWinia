@@ -33,6 +33,14 @@ export async function runGiveawayPipeline(): Promise<PipelineResult> {
   if (result.rawCount === 0) {
     result.errors.push('No raw posts were returned by the active scrapers.');
     result.errors.push(...scraperDiagnostics.messages.slice(0, 6));
+  } else {
+    const importantDiagnostics = scraperDiagnostics.messages.filter(
+      (message) =>
+        message.includes('SCRAPER_MAX_RAW_POSTS') ||
+        message.startsWith('Limited raw posts') ||
+        message.startsWith('Active scrapers:')
+    );
+    result.errors.push(...importantDiagnostics);
   }
 
   if (result.savedCount > 0) {
