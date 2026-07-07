@@ -78,18 +78,10 @@ export default function AuthConfirmPage() {
         }
 
         setState("confirmed");
-        setMessage(
-          loginId
-            ? "Confirmed. Your computer will sign in automatically."
-            : "Confirmed. Redirecting..."
-        );
+        setMessage("Confirmed. Opening SocialWinia...");
 
         window.setTimeout(() => {
-          if (loginId) {
-            window.close();
-          } else {
-            window.location.replace("/");
-          }
+          window.location.replace("/");
         }, 1600);
       } catch (error) {
         if (cancelled) {
@@ -140,9 +132,6 @@ export default function AuthConfirmPage() {
           {state === "failed" ? "Login could not be confirmed" : "Login confirmation"}
         </h1>
         <p className="mt-3 text-[#cbe7d6]">{message}</p>
-        {state === "confirmed" && (
-          <p className="mt-3 text-sm text-[#ffd23f]">You can return to your computer now.</p>
-        )}
       </section>
     </main>
   );

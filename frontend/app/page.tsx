@@ -238,9 +238,7 @@ export default function Home() {
     ) {
       setDeviceLoginId(storedDeviceLoginId);
       setDeviceLoginStartedAt(storedStartedAt);
-      setAuthMessage(
-        "Magic link sent. Open it on your phone; this computer will sign in automatically."
-      );
+      setAuthMessage("Waiting for confirmation...");
     } else if (storedDeviceLoginId) {
       clearStoredDeviceLogin();
     }
@@ -469,9 +467,7 @@ export default function Home() {
     window.localStorage.setItem(DEVICE_LOGIN_STARTED_STORAGE_KEY, String(startedAt));
     setDeviceLoginId(loginId);
     setDeviceLoginStartedAt(startedAt);
-    setAuthMessage(
-      "Magic link sent. Open it on your phone; this computer will sign in automatically."
-    );
+    setAuthMessage("Waiting for confirmation...");
   }
 
   function signInAsTestUser() {
@@ -1027,15 +1023,8 @@ function AuthView({
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-[#ffd23f] px-4 py-3 font-semibold text-[#0b1117] shadow-[0_0_28px_rgba(255,210,63,0.22)] hover:bg-[#ffe36d] disabled:cursor-not-allowed disabled:bg-[#2c6f58] disabled:text-[#7fb59b]"
         >
           <Mail size={18} />
-          {isWaitingForDeviceLogin ? "Waiting for phone confirmation..." : "Send magic link"}
+          {isWaitingForDeviceLogin ? "Waiting for confirmation..." : "Send magic link"}
         </button>
-
-        {isWaitingForDeviceLogin && (
-          <p className="mt-3 rounded-md border border-[#ffd23f]/35 bg-[#2f2a10]/80 px-3 py-2 text-sm font-semibold text-[#ffe36d]">
-            Keep this tab open. After you open the email link on your phone, this computer will
-            sign in automatically.
-          </p>
-        )}
 
         {onTestLogin && (
           <button
