@@ -3,23 +3,15 @@
 import {
   CheckCircle2,
   Clock,
-  Coins,
   CreditCard,
-  Crown,
   ExternalLink,
   Filter,
-  Flame,
-  Gem,
   Gift,
   Lock,
   Mail,
-  Monitor,
   RefreshCw,
   Search,
   Settings,
-  Sparkles,
-  Smartphone,
-  Trophy,
   User,
 } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -506,30 +498,8 @@ export default function Home() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(255,210,63,0.12),transparent_28%),radial-gradient(circle_at_15%_18%,rgba(32,184,255,0.14),transparent_24%),linear-gradient(180deg,#0b2f25_0%,#071713_100%)] text-[#fff8e7]">
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <img
-          src="/socialwinia-logo.png"
-          alt=""
-          className="absolute left-1/2 top-28 w-[880px] max-w-none -translate-x-1/2 opacity-[0.13] saturate-125"
-        />
-        <Crown className="absolute left-[46%] top-24 rotate-[-8deg] text-[#ffd23f] opacity-25" size={54} strokeWidth={1.7} />
-        <Sparkles className="absolute right-[16%] top-28 rotate-12 text-[#fff8e7] opacity-18" size={48} strokeWidth={1.6} />
-        <Coins className="absolute left-[8%] top-40 rotate-[-14deg] text-[#ffd23f] opacity-30 drop-shadow-[0_0_18px_rgba(255,210,63,0.55)]" size={44} strokeWidth={1.6} />
-        <Monitor className="absolute right-[8%] top-48 rotate-6 text-[#4bc7ff] opacity-28 drop-shadow-[0_0_18px_rgba(75,199,255,0.45)]" size={50} strokeWidth={1.5} />
-        <Flame className="absolute left-[11%] top-[47%] rotate-[-10deg] text-[#ff8ac4] opacity-32 drop-shadow-[0_0_18px_rgba(255,138,196,0.5)]" size={48} strokeWidth={1.7} />
-        <Gem className="absolute left-[29%] top-[54%] rotate-12 text-[#4bc7ff] opacity-30 drop-shadow-[0_0_18px_rgba(75,199,255,0.45)]" size={42} strokeWidth={1.6} />
-        <Gift className="absolute right-[20%] top-[49%] rotate-[-8deg] text-[#ff8ac4] opacity-34 drop-shadow-[0_0_18px_rgba(255,138,196,0.5)]" size={46} strokeWidth={1.6} />
-        <Trophy className="absolute right-[14%] top-[66%] rotate-6 text-[#ffd23f] opacity-32 drop-shadow-[0_0_18px_rgba(255,210,63,0.55)]" size={50} strokeWidth={1.5} />
-        <Smartphone className="absolute left-[5%] top-[70%] rotate-[-7deg] text-[#4bc7ff] opacity-26 drop-shadow-[0_0_18px_rgba(75,199,255,0.45)]" size={46} strokeWidth={1.6} />
-        <CreditCard className="absolute left-[14%] top-[26%] rotate-[-5deg] text-[#ffd23f] opacity-26 drop-shadow-[0_0_18px_rgba(255,210,63,0.42)]" size={42} strokeWidth={1.6} />
-        <Gift className="absolute right-[6%] top-[38%] rotate-12 text-[#b9ff4a] opacity-28 drop-shadow-[0_0_18px_rgba(185,255,74,0.45)]" size={48} strokeWidth={1.6} />
-        <Coins className="absolute right-[9%] top-[24%] rotate-[-16deg] text-[#ffd23f] opacity-26 drop-shadow-[0_0_18px_rgba(255,210,63,0.48)]" size={40} strokeWidth={1.6} />
-        <Sparkles className="absolute left-[36%] top-[18%] rotate-[-10deg] text-[#ff8ac4] opacity-28 drop-shadow-[0_0_18px_rgba(255,138,196,0.42)]" size={34} strokeWidth={1.7} />
-        <Crown className="absolute right-[31%] top-[16%] rotate-6 text-[#ffd23f] opacity-28 drop-shadow-[0_0_18px_rgba(255,210,63,0.48)]" size={42} strokeWidth={1.7} />
-        <Gem className="absolute right-[33%] top-[72%] rotate-[-12deg] text-[#4bc7ff] opacity-24 drop-shadow-[0_0_18px_rgba(75,199,255,0.4)]" size={38} strokeWidth={1.6} />
-        <Flame className="absolute right-[5%] top-[79%] rotate-12 text-[#ff8ac4] opacity-25 drop-shadow-[0_0_18px_rgba(255,138,196,0.45)]" size={42} strokeWidth={1.7} />
-      </div>
+    <main className="relative min-h-screen overflow-hidden bg-[#071713] text-[#fff8e7]">
+      <BrandBackdrop />
       <header className="relative z-10 border-b border-[#1f6f58] bg-[#0b1117]/95 shadow-[0_12px_40px_rgba(0,0,0,0.38)] backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
@@ -850,6 +820,20 @@ function TabButton({
   );
 }
 
+function BrandBackdrop() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      <img
+        src="/socialwinia-background.jpg"
+        alt=""
+        className="h-full w-full object-cover opacity-45 saturate-125"
+      />
+      <div className="absolute inset-0 bg-[#06120f]/72" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(255,210,63,0.18),transparent_28%),radial-gradient(circle_at_16%_28%,rgba(255,47,143,0.16),transparent_24%),linear-gradient(180deg,rgba(11,47,37,0.38)_0%,rgba(7,23,19,0.88)_100%)]" />
+    </div>
+  );
+}
+
 function AuthView({
   authMessage,
   email,
@@ -864,8 +848,9 @@ function AuthView({
   onTestLogin?: () => void;
 }) {
   return (
-    <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_50%_0%,rgba(255,210,63,0.14),transparent_28%),radial-gradient(circle_at_20%_20%,rgba(255,47,143,0.16),transparent_24%),linear-gradient(180deg,#0b2f25_0%,#071713_100%)] px-4 text-[#fff8e7]">
-      <section className="w-full max-w-md rounded-md border border-[#1f6f58] bg-[#12372d] p-6 shadow-[0_20px_70px_rgba(0,0,0,0.42)]">
+    <main className="relative grid min-h-screen overflow-hidden place-items-center bg-[#071713] px-4 text-[#fff8e7]">
+      <BrandBackdrop />
+      <section className="relative z-10 w-full max-w-md rounded-md border border-[#1f6f58] bg-[#12372d]/92 p-6 shadow-[0_20px_70px_rgba(0,0,0,0.42)] backdrop-blur">
         <div className="mb-5 flex items-center gap-3">
           <img
             src="/socialwinia-logo.png"
