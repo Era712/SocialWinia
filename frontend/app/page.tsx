@@ -826,10 +826,10 @@ function BrandBackdrop() {
       <img
         src="/socialwinia-background.jpg"
         alt=""
-        className="h-full w-full object-cover opacity-45 saturate-125"
+        className="h-full w-full object-cover opacity-70 saturate-150"
       />
-      <div className="absolute inset-0 bg-[#06120f]/72" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(255,210,63,0.18),transparent_28%),radial-gradient(circle_at_16%_28%,rgba(255,47,143,0.16),transparent_24%),linear-gradient(180deg,rgba(11,47,37,0.38)_0%,rgba(7,23,19,0.88)_100%)]" />
+      <div className="absolute inset-0 bg-[#06120f]/52" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(255,210,63,0.2),transparent_30%),radial-gradient(circle_at_16%_28%,rgba(255,47,143,0.18),transparent_24%),linear-gradient(180deg,rgba(11,47,37,0.22)_0%,rgba(7,23,19,0.66)_100%)]" />
     </div>
   );
 }
