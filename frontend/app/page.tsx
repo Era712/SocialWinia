@@ -167,6 +167,11 @@ const TEST_USER_EMAIL = "test@socialwinia.com";
 const SHOW_DEMO_GIVEAWAYS = process.env.NODE_ENV !== "production";
 const TRIAL_SECONDS = 4 * 60 * 60;
 const LIMITED_OFFER_SECONDS = 60 * 60;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const DEVICE_LOGIN_STORAGE_KEY = "socialwinia-device-login-id";
+const DEVICE_LOGIN_STARTED_STORAGE_KEY = "socialwinia-device-login-started-at";
+const DEVICE_LOGIN_POLL_MS = 2500;
+const DEVICE_LOGIN_TIMEOUT_MS = 10 * 60 * 1000;
 
 type ScrapeRunResult = {
   errors: string[];
@@ -177,12 +182,19 @@ type ScrapeRunResult = {
   skippedCount: number;
 };
 
+function clearStoredDeviceLogin() {
+  window.localStorage.removeItem(DEVICE_LOGIN_STORAGE_KEY);
+  window.localStorage.removeItem(DEVICE_LOGIN_STARTED_STORAGE_KEY);
+}
+
 export default function Home() {
   const [view, setView] = useState<View>("feed");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [authMessage, setAuthMessage] = useState("");
   const [email, setEmail] = useState("");
+  const [deviceLoginId, setDeviceLoginId] = useState("");
+  const [deviceLoginStartedAt, setDeviceLoginStartedAt] = useState<number | null>(null);
   const [secondsRemaining, setSecondsRemaining] = useState(TRIAL_SECONDS);
   const [offerSecondsRemaining, setOfferSecondsRemaining] = useState(LIMITED_OFFER_SECONDS);
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -214,19 +226,126 @@ export default function Home() {
       return;
     }
 
+    const storedDeviceLoginId = window.localStorage.getItem(DEVICE_LOGIN_STORAGE_KEY);
+    const storedStartedAt = Number(
+      window.localStorage.getItem(DEVICE_LOGIN_STARTED_STORAGE_KEY) || 0
+    );
+
+    if (
+      storedDeviceLoginId &&
+      storedStartedAt &&
+      Date.now() - storedStartedAt < DEVICE_LOGIN_TIMEOUT_MS
+    ) {
+      setDeviceLoginId(storedDeviceLoginId);
+      setDeviceLoginStartedAt(storedStartedAt);
+      setAuthMessage(
+        "Magic link sent. Open it on your phone; this computer will sign in automatically."
+      );
+    } else if (storedDeviceLoginId) {
+      clearStoredDeviceLogin();
+    }
+
     supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
+      const sessionUser = data.session?.user ?? null;
+
+      if (sessionUser) {
+        clearStoredDeviceLogin();
+        setDeviceLoginId("");
+        setDeviceLoginStartedAt(null);
+      }
+
+      setUser(sessionUser);
       setAuthLoading(false);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        clearStoredDeviceLogin();
+        setDeviceLoginId("");
+        setDeviceLoginStartedAt(null);
+      }
+
       setUser(session?.user ?? null);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!deviceLoginId || user) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function pollDeviceLogin() {
+      if (
+        deviceLoginStartedAt &&
+        Date.now() - deviceLoginStartedAt > DEVICE_LOGIN_TIMEOUT_MS
+      ) {
+        clearStoredDeviceLogin();
+
+        if (!cancelled) {
+          setDeviceLoginId("");
+          setDeviceLoginStartedAt(null);
+          setAuthMessage("The phone confirmation expired. Please send a new magic link.");
+        }
+
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/device-session/${deviceLoginId}`, {
+          cache: "no-store",
+        });
+        const payload = (await response.json().catch(() => ({}))) as {
+          accessToken?: string;
+          error?: string;
+          refreshToken?: string;
+          status?: string;
+        };
+
+        if (response.status === 202 || payload.status === "pending") {
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Could not check login status.");
+        }
+
+        if (payload.status === "confirmed" && payload.accessToken && payload.refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: payload.accessToken,
+            refresh_token: payload.refreshToken,
+          });
+
+          if (error) {
+            throw error;
+          }
+
+          clearStoredDeviceLogin();
+
+          if (!cancelled) {
+            setDeviceLoginId("");
+            setDeviceLoginStartedAt(null);
+            setAuthMessage("Confirmed. Signing you in...");
+          }
+        }
+      } catch (error) {
+        console.warn("Could not poll device login.", error);
+      }
+    }
+
+    pollDeviceLogin();
+    const intervalId = window.setInterval(pollDeviceLogin, DEVICE_LOGIN_POLL_MS);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [deviceLoginId, deviceLoginStartedAt, user]);
 
   useEffect(() => {
     if (!user) {
@@ -326,14 +445,33 @@ export default function Home() {
   async function sendMagicLink() {
     setAuthMessage("");
 
+    const loginId = crypto.randomUUID();
+    const startedAt = Date.now();
+    const redirectUrl = new URL("/auth/confirm", window.location.origin);
+    redirectUrl.searchParams.set("pc_login", loginId);
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: redirectUrl.toString(),
       },
     });
 
-    setAuthMessage(error ? error.message : "Magic link sent. Check your email to sign in.");
+    if (error) {
+      clearStoredDeviceLogin();
+      setDeviceLoginId("");
+      setDeviceLoginStartedAt(null);
+      setAuthMessage(error.message);
+      return;
+    }
+
+    window.localStorage.setItem(DEVICE_LOGIN_STORAGE_KEY, loginId);
+    window.localStorage.setItem(DEVICE_LOGIN_STARTED_STORAGE_KEY, String(startedAt));
+    setDeviceLoginId(loginId);
+    setDeviceLoginStartedAt(startedAt);
+    setAuthMessage(
+      "Magic link sent. Open it on your phone; this computer will sign in automatically."
+    );
   }
 
   function signInAsTestUser() {
@@ -490,6 +628,7 @@ export default function Home() {
       <AuthView
         authMessage={authMessage}
         email={email}
+        isWaitingForDeviceLogin={Boolean(deviceLoginId)}
         onEmailChange={setEmail}
         onSubmit={sendMagicLink}
         onTestLogin={TEST_LOGIN_ENABLED ? signInAsTestUser : undefined}
@@ -826,7 +965,7 @@ function BrandBackdrop() {
       <img
         src="/socialwinia-background.jpg"
         alt=""
-        className="h-full w-full translate-y-24 object-cover object-top opacity-70 saturate-150"
+        className="h-full w-full translate-y-40 object-cover object-top opacity-70 saturate-150"
       />
       <div className="absolute inset-0 bg-[#06120f]/52" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(255,210,63,0.2),transparent_30%),radial-gradient(circle_at_16%_28%,rgba(255,47,143,0.18),transparent_24%),linear-gradient(180deg,rgba(11,47,37,0.22)_0%,rgba(7,23,19,0.66)_100%)]" />
@@ -837,12 +976,14 @@ function BrandBackdrop() {
 function AuthView({
   authMessage,
   email,
+  isWaitingForDeviceLogin,
   onEmailChange,
   onSubmit,
   onTestLogin,
 }: {
   authMessage: string;
   email: string;
+  isWaitingForDeviceLogin: boolean;
   onEmailChange: (value: string) => void;
   onSubmit: () => void;
   onTestLogin?: () => void;
@@ -882,12 +1023,19 @@ function AuthView({
 
         <button
           onClick={onSubmit}
-          disabled={!email.includes("@")}
+          disabled={!email.includes("@") || isWaitingForDeviceLogin}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-[#ffd23f] px-4 py-3 font-semibold text-[#0b1117] shadow-[0_0_28px_rgba(255,210,63,0.22)] hover:bg-[#ffe36d] disabled:cursor-not-allowed disabled:bg-[#2c6f58] disabled:text-[#7fb59b]"
         >
           <Mail size={18} />
-          Send magic link
+          {isWaitingForDeviceLogin ? "Waiting for phone confirmation..." : "Send magic link"}
         </button>
+
+        {isWaitingForDeviceLogin && (
+          <p className="mt-3 rounded-md border border-[#ffd23f]/35 bg-[#2f2a10]/80 px-3 py-2 text-sm font-semibold text-[#ffe36d]">
+            Keep this tab open. After you open the email link on your phone, this computer will
+            sign in automatically.
+          </p>
+        )}
 
         {onTestLogin && (
           <button

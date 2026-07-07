@@ -10,5 +10,9 @@ const supabaseAnonKey =
     ? envSupabaseAnonKey
     : 'anon-placeholder';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    flowType: 'implicit',
+  },
+});
 

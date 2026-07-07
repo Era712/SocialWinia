@@ -12,6 +12,30 @@ config();
 const app = express();
 const PORT = Number(process.env.PORT || 3001);
 
+type PendingDeviceSession = {
+  accessToken: string;
+  email?: string;
+  expiresAt: number;
+  refreshToken: string;
+};
+
+const DEVICE_LOGIN_TTL_MS = 10 * 60 * 1000;
+const pendingDeviceSessions = new Map<string, PendingDeviceSession>();
+
+function cleanupPendingDeviceSessions() {
+  const now = Date.now();
+
+  for (const [loginId, session] of pendingDeviceSessions.entries()) {
+    if (session.expiresAt <= now) {
+      pendingDeviceSessions.delete(loginId);
+    }
+  }
+}
+
+function isValidDeviceLoginId(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-f0-9-]{36,90}$/i.test(value);
+}
+
 const allowedOrigins = new Set(
   [
     process.env.FRONTEND_URL,
@@ -119,6 +143,78 @@ app.use((req, res, next) => {
   }
 
   next();
+});
+
+app.post('/auth/device-confirm', (req, res) => {
+  cleanupPendingDeviceSessions();
+
+  const { loginId, accessToken, refreshToken, email } = req.body as {
+    accessToken?: unknown;
+    email?: unknown;
+    loginId?: unknown;
+    refreshToken?: unknown;
+  };
+
+  if (
+    !isValidDeviceLoginId(loginId) ||
+    typeof accessToken !== 'string' ||
+    typeof refreshToken !== 'string'
+  ) {
+    res.status(400).json({ error: 'Invalid confirmation payload' });
+    return;
+  }
+
+  const session: PendingDeviceSession = {
+    accessToken,
+    expiresAt: Date.now() + DEVICE_LOGIN_TTL_MS,
+    refreshToken,
+  };
+
+  if (typeof email === 'string') {
+    session.email = email;
+  }
+
+  pendingDeviceSessions.set(loginId, session);
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({ ok: true });
+});
+
+app.get('/auth/device-session/:loginId', (req, res) => {
+  cleanupPendingDeviceSessions();
+
+  const { loginId } = req.params;
+
+  if (!isValidDeviceLoginId(loginId)) {
+    res.status(400).json({ error: 'Invalid login id' });
+    return;
+  }
+
+  const session = pendingDeviceSessions.get(loginId);
+
+  if (!session) {
+    res.status(202).json({ status: 'pending' });
+    return;
+  }
+
+  pendingDeviceSessions.delete(loginId);
+  res.setHeader('Cache-Control', 'no-store');
+
+  const payload: {
+    accessToken: string;
+    email?: string;
+    refreshToken: string;
+    status: 'confirmed';
+  } = {
+    accessToken: session.accessToken,
+    refreshToken: session.refreshToken,
+    status: 'confirmed',
+  };
+
+  if (session.email) {
+    payload.email = session.email;
+  }
+
+  res.json(payload);
 });
 
 // Health check
