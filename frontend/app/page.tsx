@@ -576,6 +576,16 @@ export default function Home() {
     }
   }
 
+  function showSubscriptionSection() {
+    setView("profile");
+    window.setTimeout(() => {
+      document.getElementById("subscription")?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 80);
+  }
+
   const filteredGiveaways = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
 
@@ -649,17 +659,17 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-2">
               <button
-                onClick={!isPremium && !isLocked ? startCheckout : undefined}
+                onClick={showSubscriptionSection}
                 className="flex max-w-[220px] items-start gap-2 rounded-md border border-[#2c6f58] bg-[#102f27] px-3 py-2 text-left text-xs font-semibold text-[#fff8e7] hover:bg-[#174638] sm:max-w-none sm:text-sm"
               >
                 {isLocked ? <Lock size={16} /> : <Clock size={16} />}
                 <span className="flex flex-col leading-tight">
                   <span>
-                    {isPremium ? "Premium active" : isLocked ? "Premium required" : `Trial access ends in ${formatDuration(secondsRemaining)}`}
+                    {isPremium ? "Premium active" : isLocked ? "Premium required" : `Trial ends in ${formatDuration(secondsRemaining)}`}
                   </span>
                   {!isPremium && !isLocked && offerSecondsRemaining > 0 && (
                     <span className="mt-1 text-xs font-bold text-[#ff8ac4]">
-                      Upgrade in {formatDuration(offerSecondsRemaining)} for your first month at $2.99.
+                      Limited offer: $2.99 first month · {formatDuration(offerSecondsRemaining)} left.
                     </span>
                   )}
                 </span>
@@ -1523,17 +1533,20 @@ function ProfileView({
           </p>
         )}
       </Panel>
-      <Panel icon={<Settings size={19} />} title="Subscription">
+      <Panel id="subscription" icon={<Settings size={19} />} title="Subscription">
         <p className="text-sm text-[#cbe7d6]">
           Status: {profile?.subscription_status === "active" ? "Premium active" : "Trial active"}
           {profile?.trial_ends_at ? ` · Trial ends ${formatDate(profile.trial_ends_at)}` : ""}
+        </p>
+        <p className="mt-2 text-sm font-semibold text-[#ff8ac4]">
+          Limited offer: first month for $2.99 while your offer timer is active. Afterwards Premium is $4.99/month.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <button
             onClick={onUpgrade}
             className="rounded-md bg-[#ffd23f] px-3 py-2 text-sm font-semibold text-[#0b1117] hover:bg-[#ffe36d]"
           >
-            Upgrade
+            Subscription
           </button>
           <button
             onClick={onManageBilling}
@@ -1553,9 +1566,19 @@ function ProfileView({
   );
 }
 
-function Panel({ children, icon, title }: { children: React.ReactNode; icon: React.ReactNode; title: string }) {
+function Panel({
+  children,
+  icon,
+  id,
+  title,
+}: {
+  children: React.ReactNode;
+  icon: React.ReactNode;
+  id?: string;
+  title: string;
+}) {
   return (
-    <div className="rounded-md border border-[#1f6f58] bg-[#12372d] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.24)]">
+    <div id={id} className="rounded-md border border-[#1f6f58] bg-[#12372d] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.24)]">
       <div className="mb-3 flex items-center gap-2">
         <span className="text-[#ffd23f]">{icon}</span>
         <h2 className="text-lg font-bold">{title}</h2>
